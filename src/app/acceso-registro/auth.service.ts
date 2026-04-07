@@ -1,0 +1,75 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
+
+export interface UserResponse {
+  id: number;
+  email: string;
+  username: string;
+  full_name: string | null;
+  is_active: boolean;
+  is_admin: boolean;
+  created_at: string;
+}
+
+export interface AuthToken {
+  access_token: string;
+  token_type: string;
+  user: UserResponse;
+}
+
+export interface RegisterPayload {
+  email: string;
+  username: string;
+  full_name?: string;
+  password: string;
+}
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private readonly API = 'http://127.0.0.1:8000/api/acceso';
+  private readonly TOKEN_KEY = 'access_token';
+  private readonly USER_KEY  = 'taller_user';
+
+  constructor(private http: HttpClient) {}
+
+  register(payload: RegisterPayload): Observable<AuthToken> {
+    return this.http
+      .post<AuthToken>(`${this.API}/register`, payload)
+      .pipe(tap(res => this.saveSession(res)));
+  }
+
+  login(payload: LoginPayload): Observable<AuthToken> {
+    return this.http
+      .post<AuthToken>(`${this.API}/login`, payload)
+      .pipe(tap(res => this.saveSession(res)));
+  }
+
+  logout(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.USER_KEY);
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  getUser(): UserResponse | null {
+    const raw = localStorage.getItem(this.USER_KEY);
+    return raw ? (JSON.parse(raw) as UserResponse) : null;
+  }
+
+  isLoggedIn(): boolean {
+    return !!this.getToken();
+  }
+
+  private saveSession(auth: AuthToken): void {
+    localStorage.setItem(this.TOKEN_KEY, auth.access_token);
+    localStorage.setItem(this.USER_KEY, JSON.stringify(auth.user));
+  }
+}
