@@ -1,0 +1,84 @@
+<div class="app-layout" [class.collapsed]="collapsed()">
+
+  <!-- ── SIDEBAR ────────────────────────────────── -->
+  <aside class="sidebar">
+
+    <!-- Header -->
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">
+          <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1,'wght' 600,'GRAD' 0,'opsz' 24">route</span>
+        </div>
+        <span class="brand-name">RutaSegura</span>
+      </div>
+      <button class="toggle-btn" (click)="toggle()" title="Colapsar menú">
+        <span class="material-symbols-outlined" style="font-size:18px">
+          {{ collapsed() ? 'chevron_right' : 'chevron_left' }}
+        </span>
+      </button>
+    </div>
+
+    <!-- Nav -->
+    <nav class="nav-menu">
+
+      <!-- Dashboard -->
+      <a class="nav-link" routerLink="/app/dashboard" routerLinkActive="active">
+        <span class="nav-icon">
+          <span class="material-symbols-outlined">grid_view</span>
+        </span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+
+      <!-- Secciones por paquete -->
+      @for (section of navSections; track section.id) {
+        <div class="nav-section">
+          <button class="section-btn" (click)="toggleSection(section.id)">
+            <span class="nav-icon">
+              <span class="material-symbols-outlined">{{ section.icon }}</span>
+            </span>
+            <span class="nav-text">{{ section.label }}</span>
+            <span class="chevron" [class.open]="isOpen(section.id)">
+              <span class="material-symbols-outlined" style="font-size:16px">expand_more</span>
+            </span>
+          </button>
+
+          @if (isOpen(section.id)) {
+            <div class="section-children">
+              @for (item of section.items; track item.route) {
+                <a class="child-link"
+                   [routerLink]="item.route"
+                   routerLinkActive="active-child">
+                  {{ item.label }}
+                </a>
+              }
+            </div>
+          }
+        </div>
+      }
+
+    </nav>
+
+    <!-- Footer usuario -->
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">{{ userInitial }}</div>
+        <div class="user-info">
+          <span class="user-name">{{ userName }}</span>
+          <span class="user-role">{{ userRole }}</span>
+        </div>
+      </div>
+      <button class="logout-btn" (click)="logout()" title="Cerrar sesión">
+        <span class="material-symbols-outlined" style="font-size:18px">logout</span>
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ── CONTENIDO PRINCIPAL ────────────────────── -->
+  <main class="main-content">
+    <div class="content-area">
+      <router-outlet />
+    </div>
+  </main>
+
+</div>

@@ -1,2 +1,84 @@
 <!-- CU03 - Registrar Vehículo -->
-<p>CU03 - Registrar Vehículo</p>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Registrar Vehículo</h1>
+    <p class="page-sub">CU03 — Agrega un vehículo a tu cuenta</p>
+  </div>
+  <a routerLink="/app/acceso-registro/gestionar-vehiculos" class="btn-back">← Mis Vehículos</a>
+</div>
+
+<div class="form-card">
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="placa">Placa *</label>
+        <input id="placa" type="text" formControlName="placa"
+               placeholder="ABC-1234" style="text-transform:uppercase" />
+        @if (placa.invalid && placa.touched) {
+          <span class="field-error">Placa requerida (5–8 caracteres)</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="anio">Año *</label>
+        <input id="anio" type="number" formControlName="anio"
+               placeholder="{{ currentYear }}" min="1900" [max]="currentYear + 1" />
+        @if (anio.invalid && anio.touched) {
+          <span class="field-error">Año inválido</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="marca">Marca *</label>
+        <select id="marca" formControlName="marca">
+          <option value="">Selecciona marca</option>
+          @for (m of marcas; track m) {
+            <option [value]="m">{{ m }}</option>
+          }
+        </select>
+        @if (marca.invalid && marca.touched) {
+          <span class="field-error">Selecciona una marca</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="modelo">Modelo *</label>
+        <input id="modelo" type="text" formControlName="modelo" placeholder="Corolla, Spark..." />
+        @if (modelo.invalid && modelo.touched) {
+          <span class="field-error">Modelo requerido</span>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="color">Color *</label>
+      <select id="color" formControlName="color">
+        <option value="">Selecciona color</option>
+        @for (c of colores; track c) {
+          <option [value]="c">{{ c }}</option>
+        }
+      </select>
+      @if (color.invalid && color.touched) {
+        <span class="field-error">Selecciona un color</span>
+      }
+    </div>
+
+    @if (serverError) {
+      <span class="server-error">{{ serverError }}</span>
+    }
+    @if (successMsg) {
+      <span class="server-success">✓ {{ successMsg }}</span>
+    }
+
+    <div class="form-actions">
+      <a routerLink="/app/acceso-registro/gestionar-vehiculos" class="btn-secondary">Cancelar</a>
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        @if (loading) { <span class="spinner"></span> } @else { Registrar Vehículo }
+      </button>
+    </div>
+
+  </form>
+</div>

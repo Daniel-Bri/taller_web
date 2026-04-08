@@ -1,2 +1,85 @@
 <!-- CU12 - Registrar Taller -->
-<p>CU12 - Registrar Taller</p>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Registrar Taller</h1>
+    <p class="page-sub">CU12 — Registra tu taller mecánico en la plataforma</p>
+  </div>
+</div>
+
+<div class="form-card">
+
+  @if (successMsg) {
+    <div class="success-banner">
+      <span>✓</span>
+      <div>
+        <strong>Solicitud enviada</strong>
+        <p>{{ successMsg }}</p>
+      </div>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+      <div class="field">
+        <label for="nombre">Nombre del taller *</label>
+        <input id="nombre" type="text" formControlName="nombre"
+               placeholder="Taller Mecánico San José" />
+        @if (nombre.invalid && nombre.touched) {
+          <span class="field-error">Nombre requerido (mínimo 3 caracteres)</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="direccion">Dirección *</label>
+        <input id="direccion" type="text" formControlName="direccion"
+               placeholder="Av. Principal 123, Ciudad" />
+        @if (direccion.invalid && direccion.touched) {
+          <span class="field-error">Dirección requerida</span>
+        }
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label for="telefono">Teléfono</label>
+          <input id="telefono" type="tel" formControlName="telefono" placeholder="+591 7XXXXXXX" />
+        </div>
+
+        <div class="field">
+          <label for="email_comercial">Correo comercial</label>
+          <input id="email_comercial" type="email" formControlName="email_comercial"
+                 placeholder="taller&#64;correo.com" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label for="latitud">Latitud <span style="color:#9CA3AF">(opcional)</span></label>
+          <input id="latitud" type="number" formControlName="latitud"
+                 placeholder="-17.783333" step="any" />
+        </div>
+
+        <div class="field">
+          <label for="longitud">Longitud <span style="color:#9CA3AF">(opcional)</span></label>
+          <input id="longitud" type="number" formControlName="longitud"
+                 placeholder="-63.182140" step="any" />
+        </div>
+      </div>
+
+      <div class="info-note">
+        ◎ Tu solicitud quedará en estado <strong>Pendiente</strong> hasta que el
+        administrador la revise y apruebe.
+      </div>
+
+      @if (serverError) {
+        <span class="server-error">{{ serverError }}</span>
+      }
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" [disabled]="loading">
+          @if (loading) { <span class="spinner"></span> } @else { Enviar solicitud }
+        </button>
+      </div>
+
+    </form>
+  }
+
+</div>
