@@ -55,7 +55,7 @@ export class RegistrarseComponent {
     this.auth.register(payload).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigate(['/app/dashboard']);
+        this.router.navigate(['/app/acceso-registro/registrar-taller']);
       },
       error: (err) => {
         this.serverError = err.error?.detail ?? 'Error al registrarse';

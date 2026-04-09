@@ -3,8 +3,8 @@ import { IniciarSesionComponent } from './acceso-registro/iniciar-sesion/iniciar
 import { RegistrarseComponent } from './acceso-registro/registrarse/registrarse.component';
 import { AppLayoutComponent } from './shared/layout/app-layout.component';
 import { DashboardHomeComponent } from './dashboard/dashboard-home.component';
-import { RegistrarVehiculoComponent } from './acceso-registro/registrar-vehiculo/registrar-vehiculo.component';
 import { RegistrarTallerComponent } from './acceso-registro/registrar-taller/registrar-taller.component';
+import { AprobarTalleresComponent } from './acceso-registro/aprobar-talleres/aprobar-talleres.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -21,13 +21,12 @@ export const routes: Routes = [
       { path: 'dashboard', component: DashboardHomeComponent },
 
       // ── Acceso y Registro ──────────────────────
-      { path: 'acceso-registro/registrar-vehiculo',   component: RegistrarVehiculoComponent },
       { path: 'acceso-registro/registrar-taller',     component: RegistrarTallerComponent },
 
       // Stubs — se implementarán en ciclos siguientes
       { path: 'acceso-registro/gestionar-vehiculos',  component: DashboardHomeComponent },
       { path: 'acceso-registro/gestionar-usuarios',   component: DashboardHomeComponent },
-      { path: 'acceso-registro/aprobar-talleres',     component: DashboardHomeComponent },
+      { path: 'acceso-registro/aprobar-talleres',     component: AprobarTalleresComponent },
       { path: 'emergencias/:cu',                      component: DashboardHomeComponent },
       { path: 'solicitudes/:cu',                      component: DashboardHomeComponent },
       { path: 'talleres-tecnicos/:cu',                component: DashboardHomeComponent },

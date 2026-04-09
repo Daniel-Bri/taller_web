@@ -1,2 +1,114 @@
-<!-- CU34 - Aprobar Talleres -->
-<p>CU34 - Aprobar Talleres</p>
+<!-- CU34 - Aprobar / Rechazar Talleres -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Gestión de Talleres</h1>
+    <p class="page-sub">CU34 · Aprobación de talleres registrados por operadores</p>
+  </div>
+  <button class="btn-secondary" (click)="cargar()" [disabled]="loading">
+    <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
+    Actualizar
+  </button>
+</div>
+
+<!-- Filtros -->
+<div class="filter-bar">
+  @for (f of filtros; track f.value) {
+    <button
+      class="filter-btn"
+      [class.active]="filtro === f.value"
+      (click)="cambiarFiltro(f.value)">
+      {{ f.label }}
+    </button>
+  }
+</div>
+
+<!-- Error global -->
+@if (errorMsg) {
+  <div class="alert-danger">{{ errorMsg }}</div>
+}
+
+<!-- Loading -->
+@if (loading) {
+  <div class="loading-row">
+    <span class="spinner-dark"></span> Cargando talleres...
+  </div>
+}
+
+<!-- Tabla -->
+@if (!loading) {
+  @if (talleres.length === 0) {
+    <div class="empty-state">
+      <span class="material-symbols-outlined" style="font-size:40px;color:#9CA3AF">store</span>
+      <p>No hay talleres con estado <strong>{{ filtro }}</strong></p>
+    </div>
+  } @else {
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Dirección</th>
+            <th>Contacto</th>
+            <th>Estado</th>
+            <th>Registrado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (taller of talleres; track taller.id) {
+            <tr>
+              <td class="td-id">{{ taller.id }}</td>
+              <td class="td-name">{{ taller.nombre }}</td>
+              <td class="td-dir">{{ taller.direccion }}</td>
+              <td class="td-contact">
+                @if (taller.telefono) { <div>{{ taller.telefono }}</div> }
+                @if (taller.email_comercial) { <div class="text-muted">{{ taller.email_comercial }}</div> }
+              </td>
+              <td>
+                <span class="badge" [ngClass]="badgeClass(taller.estado)">
+                  {{ taller.estado }}
+                </span>
+              </td>
+              <td class="td-date text-muted">{{ taller.created_at | date:'dd/MM/yyyy' }}</td>
+              <td class="td-actions">
+                @if (mensajeFila[taller.id]; as msg) {
+                  <span [class]="msg.tipo === 'ok' ? 'server-success' : 'server-error'">
+                    {{ msg.texto }}
+                  </span>
+                } @else {
+                  <div class="action-btns">
+                    @if (taller.estado !== 'aprobado') {
+                      <button
+                        class="btn-approve"
+                        [disabled]="procesando[taller.id] !== null && procesando[taller.id] !== undefined"
+                        (click)="aprobar(taller)">
+                        @if (procesando[taller.id] === 'aprobando') {
+                          <span class="spinner"></span>
+                        } @else {
+                          Aprobar
+                        }
+                      </button>
+                    }
+                    @if (taller.estado !== 'rechazado') {
+                      <button
+                        class="btn-reject"
+                        [disabled]="procesando[taller.id] !== null && procesando[taller.id] !== undefined"
+                        (click)="rechazar(taller)">
+                        @if (procesando[taller.id] === 'rechazando') {
+                          <span class="spinner"></span>
+                        } @else {
+                          Rechazar
+                        }
+                      </button>
+                    }
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}

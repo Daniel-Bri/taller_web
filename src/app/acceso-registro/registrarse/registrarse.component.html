@@ -1,10 +1,11 @@
-<!-- CU01 - Registrarse -->
+<!-- CU01 - Registro de Taller (paso 1: crear cuenta) -->
 <div class="auth-page">
   <div class="auth-card">
 
     <div class="auth-header">
       <div class="auth-logo">RutaSegura</div>
-      <p class="auth-subtitle">Crea tu cuenta</p>
+      <p class="auth-subtitle">Registro de Taller — Paso 1 de 2</p>
+      <p style="font-size:12px;color:#9CA3AF;margin-top:4px">Crea tu cuenta de acceso</p>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -88,7 +89,7 @@
         @if (loading) {
           <span class="spinner"></span>
         } @else {
-          Crear cuenta
+          Continuar →
         }
       </button>
 
