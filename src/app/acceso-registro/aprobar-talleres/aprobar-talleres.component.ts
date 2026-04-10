@@ -44,7 +44,11 @@ export class AprobarTalleresComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        this.errorMsg = err.error?.detail ?? 'Error al cargar los talleres';
+        if (err.name === 'TimeoutError') {
+          this.errorMsg = 'El servidor no responde. Verifica que el backend esté corriendo.';
+        } else {
+          this.errorMsg = err.error?.detail ?? 'Error al cargar los talleres';
+        }
         this.loading = false;
       },
     });

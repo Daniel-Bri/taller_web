@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { timeout } from 'rxjs/operators';
 
 export interface VehiculoPayload {
   placa: string;
@@ -70,14 +71,14 @@ export class VehiculoService {
 
   listarTalleres(estado?: string): Observable<TallerResponse[]> {
     const params = estado ? `?estado=${estado}` : '';
-    return this.http.get<TallerResponse[]>(`${this.API}/talleres${params}`);
+    return this.http.get<TallerResponse[]>(`${this.API}/talleres${params}`).pipe(timeout(8000));
   }
 
   aprobarTaller(id: number): Observable<TallerResponse> {
-    return this.http.patch<TallerResponse>(`${this.API}/talleres/${id}/aprobar`, {});
+    return this.http.patch<TallerResponse>(`${this.API}/talleres/${id}/aprobar`, {}).pipe(timeout(8000));
   }
 
   rechazarTaller(id: number): Observable<TallerResponse> {
-    return this.http.patch<TallerResponse>(`${this.API}/talleres/${id}/rechazar`, {});
+    return this.http.patch<TallerResponse>(`${this.API}/talleres/${id}/rechazar`, {}).pipe(timeout(8000));
   }
 }
