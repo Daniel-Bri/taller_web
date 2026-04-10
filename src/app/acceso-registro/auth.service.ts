@@ -7,8 +7,9 @@ export interface UserResponse {
   email: string;
   username: string;
   full_name: string | null;
+  telefono: string | null;
   is_active: boolean;
-  is_admin: boolean;
+  role: string;
   created_at: string;
 }
 

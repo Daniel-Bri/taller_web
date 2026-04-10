@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VehiculoService, TallerResponse } from '../vehiculo.service';
 
@@ -28,7 +28,7 @@ export class AprobarTalleresComponent implements OnInit {
   procesando: Record<number, 'aprobando' | 'rechazando' | null> = {};
   mensajeFila: Record<number, { tipo: 'ok' | 'error'; texto: string }> = {};
 
-  constructor(private vehiculoService: VehiculoService) {}
+  constructor(private vehiculoService: VehiculoService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.cargar();
@@ -42,6 +42,7 @@ export class AprobarTalleresComponent implements OnInit {
       next: (data) => {
         this.talleres = data;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         if (err.name === 'TimeoutError') {
@@ -50,6 +51,7 @@ export class AprobarTalleresComponent implements OnInit {
           this.errorMsg = err.error?.detail ?? 'Error al cargar los talleres';
         }
         this.loading = false;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -68,7 +70,8 @@ export class AprobarTalleresComponent implements OnInit {
         this.procesando[taller.id] = null;
         this.mensajeFila[taller.id] = { tipo: 'ok', texto: 'Aprobado correctamente' };
         this.reemplazar(actualizado);
-        setTimeout(() => this.limpiarMensaje(taller.id), 2500);
+        this.cdr.detectChanges();
+        setTimeout(() => { this.limpiarMensaje(taller.id); this.cdr.detectChanges(); }, 2500);
       },
       error: (err) => {
         this.procesando[taller.id] = null;
@@ -76,6 +79,7 @@ export class AprobarTalleresComponent implements OnInit {
           tipo: 'error',
           texto: err.error?.detail ?? 'Error al aprobar',
         };
+        this.cdr.detectChanges();
       },
     });
   }
@@ -88,7 +92,8 @@ export class AprobarTalleresComponent implements OnInit {
         this.procesando[taller.id] = null;
         this.mensajeFila[taller.id] = { tipo: 'ok', texto: 'Rechazado' };
         this.reemplazar(actualizado);
-        setTimeout(() => this.limpiarMensaje(taller.id), 2500);
+        this.cdr.detectChanges();
+        setTimeout(() => { this.limpiarMensaje(taller.id); this.cdr.detectChanges(); }, 2500);
       },
       error: (err) => {
         this.procesando[taller.id] = null;
@@ -96,6 +101,7 @@ export class AprobarTalleresComponent implements OnInit {
           tipo: 'error',
           texto: err.error?.detail ?? 'Error al rechazar',
         };
+        this.cdr.detectChanges();
       },
     });
   }

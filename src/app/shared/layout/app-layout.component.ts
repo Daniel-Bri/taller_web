@@ -104,7 +104,15 @@ export class AppLayoutComponent {
   get user() { return this.auth.getUser(); }
   get userInitial() { return (this.user?.username ?? 'U')[0].toUpperCase(); }
   get userName()    { return this.user?.full_name || this.user?.username || 'Usuario'; }
-  get userRole()    { return this.user?.is_admin ? 'Administrador' : 'Usuario'; }
+  get userRole(): string {
+    const labels: Record<string, string> = {
+      admin:   'Administrador',
+      taller:  'Taller',
+      tecnico: 'Técnico',
+      cliente: 'Cliente',
+    };
+    return labels[this.user?.role ?? 'cliente'] ?? 'Usuario';
+  }
 
   toggle() { this.collapsed.update(v => !v); }
 
