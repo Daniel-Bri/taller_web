@@ -1,2 +1,139 @@
-<!-- CU19 - Gestionar Disponibilidad -->
-<p>CU19 - Gestionar Disponibilidad</p>
+<!-- CU16 - Gestionar Disponibilidad -->
+
+<!-- ── Encabezado ─────────────────────────────────────── -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Gestionar Disponibilidad</h1>
+    <p class="page-sub">CU16 · Controla si tu taller acepta solicitudes de asistencia</p>
+  </div>
+  <button class="btn-secondary" (click)="cargar()" [disabled]="loading">
+    <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
+    Actualizar
+  </button>
+</div>
+
+<!-- ── Carga ──────────────────────────────────────────── -->
+@if (loading) {
+  <div class="loading-row">
+    <span class="spinner-dark"></span> Cargando información del taller...
+  </div>
+}
+
+<!-- ── Error global ───────────────────────────────────── -->
+@if (errorMsg && !loading) {
+  <div class="alert-danger">{{ errorMsg }}</div>
+}
+
+@if (taller && !loading) {
+
+  <!-- ── Tarjeta de resumen del taller ──────────────── -->
+  <div class="info-card" style="margin-bottom:1.5rem">
+    <div class="info-card-header">
+      <span class="material-symbols-outlined" style="font-size:22px;color:var(--primary)">store</span>
+      <div>
+        <div class="info-card-title">{{ taller.nombre }}</div>
+        <div class="info-card-sub">{{ taller.direccion }}</div>
+      </div>
+      <span class="badge" [ngClass]="estadoBadge(taller.estado)" style="margin-left:auto">
+        {{ taller.estado }}
+      </span>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <span class="stat-val">{{ taller.total_tecnicos }}</span>
+        <span class="stat-lbl">Técnicos activos</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val" style="color:var(--success)">{{ taller.tecnicos_disponibles }}</span>
+        <span class="stat-lbl">Disponibles</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val" style="color:#D97706">{{ taller.tecnicos_ocupados }}</span>
+        <span class="stat-lbl">Ocupados</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-val" style="color:var(--primary)">{{ taller.rating | number:'1.1-1' }}</span>
+        <span class="stat-lbl">Rating</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Panel de disponibilidad ────────────────────── -->
+  <div class="form-card" style="max-width:580px">
+
+    <h2 style="font-size:1rem;font-weight:700;color:var(--text);margin-bottom:1.25rem">
+      Estado de disponibilidad
+    </h2>
+
+    <!-- Toggle visual -->
+    <div class="toggle-row" (click)="toggleDisponible()" [class.toggle-active]="disponibleSeleccionado">
+      <div class="toggle-info">
+        <span class="material-symbols-outlined" style="font-size:24px"
+              [style.color]="disponibleSeleccionado ? 'var(--success)' : '#9CA3AF'">
+          {{ disponibleSeleccionado ? 'check_circle' : 'cancel' }}
+        </span>
+        <div>
+          <div class="toggle-label">
+            {{ disponibleSeleccionado ? 'Disponible para recibir solicitudes' : 'No disponible' }}
+          </div>
+          <div class="toggle-desc">
+            {{ disponibleSeleccionado
+                ? 'Los clientes pueden enviarte solicitudes de asistencia.'
+                : 'Tu taller no aparecerá en las asignaciones automáticas.' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Switch -->
+      <div class="switch" [class.switch-on]="disponibleSeleccionado">
+        <div class="switch-knob"></div>
+      </div>
+    </div>
+
+    <!-- Nota informativa -->
+    @if (taller.estado !== 'aprobado') {
+      <div class="info-note" style="margin-top:1rem">
+        ⚠ Tu taller está en estado <strong>{{ taller.estado }}</strong>. Solo los talleres aprobados
+        pueden modificar su disponibilidad.
+      </div>
+    } @else if (disponibleSeleccionado && taller.tecnicos_disponibles === 0) {
+      <div class="info-note" style="margin-top:1rem">
+        ◎ No tienes técnicos disponibles actualmente. Considera registrar técnicos antes de activarte.
+      </div>
+    }
+
+    <!-- Feedback -->
+    @if (successMsg) {
+      <div class="success-banner" style="margin-top:1rem">
+        <span class="material-symbols-outlined">check_circle</span>
+        <div><strong>{{ successMsg }}</strong></div>
+      </div>
+    }
+    @if (errorMsg) {
+      <div class="alert-danger" style="margin-top:0.75rem">{{ errorMsg }}</div>
+    }
+
+    <!-- Acciones -->
+    <div class="form-actions" style="margin-top:1.5rem">
+      <button
+        class="btn-primary"
+        style="width:auto;padding:0.72rem 1.75rem;margin-top:0"
+        (click)="guardar()"
+        [disabled]="guardando || !cambioSinGuardar() || taller.estado !== 'aprobado'">
+        @if (guardando) {
+          <span class="spinner"></span>
+        } @else {
+          <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px;vertical-align:middle">save</span>
+          Guardar disponibilidad
+        }
+      </button>
+
+      @if (!cambioSinGuardar() && !guardando) {
+        <span style="font-size:0.82rem;color:#9CA3AF;align-self:center">Sin cambios pendientes</span>
+      }
+    </div>
+
+  </div>
+
+}

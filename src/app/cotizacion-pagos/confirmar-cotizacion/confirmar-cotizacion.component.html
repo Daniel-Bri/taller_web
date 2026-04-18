@@ -1,2 +1,126 @@
-<!-- CU25 - Confirmar Cotización -->
-<p>CU25 - Confirmar Cotización</p>
+<!-- CU20 · Ver / Confirmar Cotización -->
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Detalle de Cotización</h1>
+    <p class="page-sub">CU20 · Revisa los ítems y confirma o rechaza la cotización</p>
+  </div>
+  <a class="btn-secondary" routerLink="/app/cotizacion-pagos/ver-cotizacion">
+    <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">arrow_back</span>
+    Volver
+  </a>
+</div>
+
+@if (loading) {
+  <div class="loading-row"><span class="spinner-dark"></span> Cargando cotización...</div>
+}
+
+@if (errorMsg && !loading) {
+  <div class="alert-danger">{{ errorMsg }}</div>
+}
+
+@if (cotizacion && !loading) {
+
+  <!-- ── Encabezado de la cotización ────────────────── -->
+  <div class="info-card" style="margin-bottom:1.5rem">
+    <div class="info-card-header" style="margin-bottom:0.75rem">
+      <span class="material-symbols-outlined" style="font-size:22px;color:var(--primary)">receipt_long</span>
+      <div>
+        <div class="info-card-title">Cotización #{{ cotizacion.id }}</div>
+        <div class="info-card-sub">Incidente #{{ cotizacion.incidente_id }} · {{ cotizacion.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
+      </div>
+      <span class="badge"
+            [ngClass]="{ 'badge-warning': cotizacion.estado === 'pendiente',
+                         'badge-success': cotizacion.estado === 'aceptada',
+                         'badge-danger' : cotizacion.estado === 'rechazada' }"
+            style="margin-left:auto;font-size:0.85rem;padding:0.35rem 0.9rem">
+        {{ cotizacion.estado | titlecase }}
+      </span>
+    </div>
+  </div>
+
+  <!-- ── Tabla de ítems ──────────────────────────────── -->
+  <div class="form-card" style="max-width:780px;margin-bottom:1.5rem">
+    <h2 class="section-title">Ítems de la cotización</h2>
+
+    @if (items.length === 0) {
+      <p class="text-muted" style="font-size:0.875rem">Sin ítems registrados.</p>
+    } @else {
+      <div class="table-card" style="box-shadow:none;border:1px solid #E5E7EB">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th style="text-align:right">Cantidad</th>
+              <th style="text-align:right">Precio unit. (Bs.)</th>
+              <th style="text-align:right">Subtotal (Bs.)</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of items; track $index) {
+              <tr>
+                <td>{{ item.descripcion }}</td>
+                <td style="text-align:right">{{ item.cantidad }}</td>
+                <td style="text-align:right">{{ item.precio_unitario | number:'1.2-2' }}</td>
+                <td style="text-align:right;font-weight:600">
+                  {{ (item.cantidad * item.precio_unitario) | number:'1.2-2' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr style="background:#F9FAFB">
+              <td colspan="3" style="text-align:right;font-weight:700;padding:0.85rem 1rem">
+                Total estimado
+              </td>
+              <td style="text-align:right;font-weight:800;font-size:1.05rem;color:var(--primary);padding:0.85rem 1rem">
+                Bs. {{ cotizacion.monto_estimado | number:'1.2-2' }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    }
+
+    <!-- Feedback -->
+    @if (successMsg) {
+      <div class="success-banner" style="margin-top:1rem">
+        <span class="material-symbols-outlined">check_circle</span>
+        <div><strong>{{ successMsg }}</strong></div>
+      </div>
+    }
+    @if (errorMsg) {
+      <div class="alert-danger" style="margin-top:0.75rem">{{ errorMsg }}</div>
+    }
+
+    <!-- Acciones (solo si está pendiente) -->
+    @if (cotizacion.estado === 'pendiente') {
+      <div class="form-actions" style="margin-top:1.5rem;justify-content:flex-start;gap:0.75rem">
+        <button
+          class="btn-approve"
+          style="padding:0.65rem 1.5rem;font-size:0.9rem"
+          (click)="confirmar()"
+          [disabled]="procesando !== null">
+          @if (procesando === 'aceptando') { <span class="spinner" style="border-color:rgba(6,95,70,0.3);border-top-color:#065F46"></span> }
+          @else {
+            <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px;vertical-align:middle">check_circle</span>
+            Confirmar cotización
+          }
+        </button>
+        <button
+          class="btn-reject"
+          style="padding:0.65rem 1.5rem;font-size:0.9rem"
+          (click)="rechazar()"
+          [disabled]="procesando !== null">
+          @if (procesando === 'rechazando') { <span class="spinner" style="border-color:rgba(153,27,27,0.3);border-top-color:#991B1B"></span> }
+          @else {
+            <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px;vertical-align:middle">cancel</span>
+            Rechazar cotización
+          }
+        </button>
+      </div>
+    }
+
+  </div>
+
+}

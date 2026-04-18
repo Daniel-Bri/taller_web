@@ -59,10 +59,10 @@ export class AppLayoutComponent {
       label: 'Talleres y Técnicos',
       icon: 'handyman',
       items: [
-        { label: 'Gestionar Técnicos',  route: '/app/talleres-tecnicos/gestionar-tecnicos' },
-        { label: 'Asignar Técnico',     route: '/app/talleres-tecnicos/asignar-tecnico' },
-        { label: 'Disponibilidad',      route: '/app/talleres-tecnicos/gestionar-disponibilidad' },
-        { label: 'Servicio Realizado',  route: '/app/talleres-tecnicos/registrar-servicio-realizado' },
+        { label: 'Gestionar Técnicos',       route: '/app/talleres-tecnicos/gestionar-tecnicos' },
+        { label: 'Gestionar Disponibilidad', route: '/app/talleres-tecnicos/gestionar-disponibilidad' },
+        { label: 'Actualizar Estado',        route: '/app/talleres-tecnicos/actualizar-estado-servicio' },
+        { label: 'Registrar Servicio',       route: '/app/talleres-tecnicos/registrar-servicio-realizado' },
       ],
     },
     {
@@ -70,10 +70,10 @@ export class AppLayoutComponent {
       label: 'Cotización y Pagos',
       icon: 'receipt_long',
       items: [
-        { label: 'Generar Cotización',  route: '/app/cotizacion-pagos/generar-cotizacion' },
-        { label: 'Ver Cotización',      route: '/app/cotizacion-pagos/ver-cotizacion' },
-        { label: 'Realizar Pago',       route: '/app/cotizacion-pagos/realizar-pago' },
-        { label: 'Ver Comisiones',      route: '/app/cotizacion-pagos/ver-comisiones' },
+        { label: 'Generar Cotización',   route: '/app/cotizacion-pagos/generar-cotizacion' },
+        { label: 'Ver Cotizaciones',     route: '/app/cotizacion-pagos/ver-cotizacion' },
+        { label: 'Realizar Pago',        route: '/app/cotizacion-pagos/realizar-pago' },
+        { label: 'Ver Comisiones',       route: '/app/cotizacion-pagos/ver-comisiones' },
       ],
     },
     {

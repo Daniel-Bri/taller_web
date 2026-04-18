@@ -1,9 +1,196 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import {
+  TecnicoService,
+  TecnicoResponse,
+  AsignacionResponse,
+} from '../tecnico.service';
+
+type PanelMode = 'registrar' | 'editar' | null;
 
 @Component({
   selector: 'app-gestionar-tecnicos',
   standalone: true,
-  imports: [],
+  imports: [CommonModule, FormsModule],
   templateUrl: './gestionar-tecnicos.component.html',
 })
-export class GestionarTecnicosComponent {}
+export class GestionarTecnicosComponent implements OnInit {
+
+  // ── Datos ──────────────────────────────────────────────
+  tecnicos: TecnicoResponse[] = [];
+  asignaciones: AsignacionResponse[] = [];
+
+  // ── Carga ──────────────────────────────────────────────
+  loadingTecnicos  = false;
+  loadingAsig      = false;
+  errorTecnicos    = '';
+  errorAsig        = '';
+
+  // ── Panel registro / edición ───────────────────────────
+  panelMode: PanelMode = null;
+  editandoId: number | null = null;
+
+  form = { nombre: '', especialidad: '', telefono: '' };
+  guardando = false;
+  formError = '';
+  formSuccess = '';
+
+  // ── Asignar ────────────────────────────────────────────
+  asignandoId: number | null = null;
+  tecnicoSeleccionado: Record<number, number | null> = {};
+  asigMensaje: Record<number, { tipo: 'ok' | 'error'; texto: string }> = {};
+
+  // ── Desactivar ─────────────────────────────────────────
+  desactivando: Record<number, boolean> = {};
+
+  constructor(private svc: TecnicoService, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    this.cargarTecnicos();
+    this.cargarAsignaciones();
+  }
+
+  // ── Carga de datos ─────────────────────────────────────
+  cargarTecnicos(): void {
+    this.loadingTecnicos = true;
+    this.errorTecnicos   = '';
+    this.svc.listar().subscribe({
+      next: (data) => { this.tecnicos = data; this.loadingTecnicos = false; this.cdr.detectChanges(); },
+      error: (err) => {
+        this.errorTecnicos = err.error?.detail ?? 'Error al cargar técnicos';
+        this.loadingTecnicos = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  cargarAsignaciones(): void {
+    this.loadingAsig = true;
+    this.errorAsig   = '';
+    this.svc.listarAsignacionesPendientes().subscribe({
+      next: (data) => { this.asignaciones = data; this.loadingAsig = false; this.cdr.detectChanges(); },
+      error: (err) => {
+        this.errorAsig = err.error?.detail ?? 'Error al cargar asignaciones';
+        this.loadingAsig = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  // ── Panel form ─────────────────────────────────────────
+  abrirRegistrar(): void {
+    this.form        = { nombre: '', especialidad: '', telefono: '' };
+    this.formError   = '';
+    this.formSuccess = '';
+    this.editandoId  = null;
+    this.panelMode   = 'registrar';
+  }
+
+  abrirEditar(t: TecnicoResponse): void {
+    this.form        = { nombre: t.nombre, especialidad: t.especialidad, telefono: t.telefono ?? '' };
+    this.formError   = '';
+    this.formSuccess = '';
+    this.editandoId  = t.id;
+    this.panelMode   = 'editar';
+  }
+
+  cerrarPanel(): void {
+    this.panelMode  = null;
+    this.editandoId = null;
+  }
+
+  guardar(): void {
+    if (!this.form.nombre.trim() || !this.form.especialidad.trim()) {
+      this.formError = 'Nombre y especialidad son obligatorios';
+      return;
+    }
+    this.guardando = true;
+    this.formError = '';
+    this.formSuccess = '';
+
+    const payload = {
+      nombre:       this.form.nombre.trim(),
+      especialidad: this.form.especialidad.trim(),
+      telefono:     this.form.telefono.trim() || undefined,
+    };
+
+    if (this.panelMode === 'registrar') {
+      this.svc.registrar(payload).subscribe({
+        next: (nuevo) => {
+          this.tecnicos = [nuevo, ...this.tecnicos];
+          this.formSuccess = 'Técnico registrado correctamente';
+          this.guardando = false;
+          setTimeout(() => this.cerrarPanel(), 1500);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.formError = err.error?.detail ?? 'Error al registrar técnico';
+          this.guardando = false;
+          this.cdr.detectChanges();
+        },
+      });
+    } else {
+      this.svc.actualizar(this.editandoId!, payload).subscribe({
+        next: (actualizado) => {
+          this.tecnicos = this.tecnicos.map((t) => t.id === actualizado.id ? actualizado : t);
+          this.formSuccess = 'Técnico actualizado correctamente';
+          this.guardando = false;
+          setTimeout(() => this.cerrarPanel(), 1500);
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.formError = err.error?.detail ?? 'Error al actualizar técnico';
+          this.guardando = false;
+          this.cdr.detectChanges();
+        },
+      });
+    }
+  }
+
+  // ── Desactivar ─────────────────────────────────────────
+  desactivar(t: TecnicoResponse): void {
+    if (!confirm(`¿Desactivar a ${t.nombre}?`)) return;
+    this.desactivando[t.id] = true;
+    this.svc.desactivar(t.id).subscribe({
+      next: () => {
+        this.tecnicos = this.tecnicos.filter((x) => x.id !== t.id);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.desactivando[t.id] = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  // ── Asignar ────────────────────────────────────────────
+  asignar(asig: AsignacionResponse): void {
+    const tecnicoId = this.tecnicoSeleccionado[asig.id];
+    if (!tecnicoId) { this.asigMensaje[asig.id] = { tipo: 'error', texto: 'Selecciona un técnico' }; return; }
+    this.asignandoId = asig.id;
+
+    this.svc.asignarTecnico(asig.id, tecnicoId).subscribe({
+      next: () => {
+        this.asignaciones = this.asignaciones.filter((a) => a.id !== asig.id);
+        this.cargarTecnicos();
+        this.asignandoId = null;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.asigMensaje[asig.id] = { tipo: 'error', texto: err.error?.detail ?? 'Error al asignar' };
+        this.asignandoId = null;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  // ── Helpers ────────────────────────────────────────────
+  badgeEstado(estado: string): string {
+    return { disponible: 'badge-success', ocupado: 'badge-warning', inactivo: 'badge-muted' }[estado] ?? 'badge-muted';
+  }
+
+  get disponibles(): TecnicoResponse[] {
+    return this.tecnicos.filter((t) => t.estado === 'disponible');
+  }
+}

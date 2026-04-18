@@ -1,2 +1,108 @@
-<!-- CU18 - Actualizar Estado del Servicio -->
-<p>CU18 - Actualizar Estado del Servicio</p>
+<!-- CU15 - Actualizar Estado del Servicio -->
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Actualizar Estado del Servicio</h1>
+    <p class="page-sub">CU15 · Gestiona el progreso de cada servicio en curso</p>
+  </div>
+  <button class="btn-secondary" (click)="cargar()" [disabled]="loading">
+    <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
+    Actualizar
+  </button>
+</div>
+
+@if (errorMsg) { <div class="alert-danger">{{ errorMsg }}</div> }
+
+@if (loading) {
+  <div class="loading-row"><span class="spinner-dark"></span> Cargando servicios activos...</div>
+} @else if (asignaciones.length === 0) {
+  <div class="empty-state">
+    <span class="material-symbols-outlined" style="font-size:40px;color:#9CA3AF">build_circle</span>
+    <p>No hay servicios activos en este momento.</p>
+  </div>
+} @else {
+
+  <div class="servicio-grid">
+    @for (a of asignaciones; track a.id) {
+      <div class="servicio-card">
+
+        <!-- Encabezado -->
+        <div class="servicio-card-header">
+          <div>
+            <span class="servicio-card-title">Asignación #{{ a.id }}</span>
+            <span class="servicio-card-sub">Incidente #{{ a.incidente_id }}</span>
+          </div>
+          <span class="badge" [ngClass]="estadoInfo[a.estado]?.badgeClass ?? 'badge-muted'">
+            <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;margin-right:3px">
+              {{ estadoInfo[a.estado]?.icon }}
+            </span>
+            {{ estadoInfo[a.estado]?.label ?? a.estado }}
+          </span>
+        </div>
+
+        <!-- Stepper de progreso -->
+        <div class="stepper">
+          @for (paso of pasos; track paso; let i = $index) {
+            <div class="step" [class.step-done]="pasoIndex(a.estado) >= i"
+                              [class.step-active]="a.estado === paso">
+              <div class="step-dot"></div>
+              @if (i < pasos.length - 1) { <div class="step-line"></div> }
+            </div>
+          }
+        </div>
+        <div class="stepper-labels">
+          @for (paso of pasos; track paso) {
+            <span [class.lbl-active]="a.estado === paso">{{ estadoInfo[paso]?.label }}</span>
+          }
+        </div>
+
+        <!-- Observación actual -->
+        @if (a.observacion) {
+          <div class="obs-actual">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#6B7280">comment</span>
+            {{ a.observacion }}
+          </div>
+        }
+
+        <!-- Acciones -->
+        @if (opcionesTransicion(a.estado).length > 0) {
+          <div class="servicio-actions">
+            <div class="field" style="margin-bottom:0.75rem">
+              <label>Siguiente estado</label>
+              <select [(ngModel)]="estadoSel[a.id]">
+                @for (op of opcionesTransicion(a.estado); track op) {
+                  <option [value]="op">{{ estadoInfo[op]?.label ?? op }}</option>
+                }
+              </select>
+            </div>
+            <div class="field" style="margin-bottom:0.75rem">
+              <label>Observación <span style="color:#9CA3AF">(opcional)</span></label>
+              <input type="text" [(ngModel)]="obsTexto[a.id]" placeholder="Ej. Esperando repuesto..." />
+            </div>
+
+            @if (mensajeFila[a.id]; as msg) {
+              <span [class]="msg.tipo === 'ok' ? 'server-success' : 'server-error'">{{ msg.texto }}</span>
+            }
+
+            <button
+              class="btn-primary"
+              style="width:100%;margin-top:0.25rem;padding:0.65rem"
+              (click)="guardar(a)"
+              [disabled]="procesando[a.id] || !estadoSel[a.id]">
+              @if (procesando[a.id]) { <span class="spinner"></span> }
+              @else {
+                <span class="material-symbols-outlined" style="font-size:15px;margin-right:6px;vertical-align:middle">update</span>
+                Confirmar cambio
+              }
+            </button>
+          </div>
+        } @else {
+          <div class="info-note" style="margin-top:0.75rem;font-size:0.8rem">
+            ✓ Este servicio ya no admite más cambios de estado.
+          </div>
+        }
+
+      </div>
+    }
+  </div>
+}

@@ -1,2 +1,213 @@
-<!-- CU30 - Gestionar Técnicos -->
-<p>CU30 - Gestionar Técnicos</p>
+<!-- CU25 - Gestionar Técnicos -->
+
+<!-- ── Encabezado ─────────────────────────────────────── -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Gestionar Técnicos</h1>
+    <p class="page-sub">CU25 · Registra, edita y asigna técnicos a solicitudes activas</p>
+  </div>
+  <div style="display:flex;gap:0.5rem">
+    <button class="btn-secondary" (click)="cargarTecnicos()" [disabled]="loadingTecnicos">
+      <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
+      Actualizar
+    </button>
+    <button class="btn-primary" style="width:auto;padding:0.6rem 1.25rem;margin-top:0" (click)="abrirRegistrar()">
+      <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px;vertical-align:middle">person_add</span>
+      Nuevo Técnico
+    </button>
+  </div>
+</div>
+
+<!-- ── Panel registro / edición ─────────────────────── -->
+@if (panelMode) {
+  <div class="form-card" style="max-width:100%;margin-bottom:1.75rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+      <h2 style="font-size:1rem;font-weight:700;color:var(--text)">
+        {{ panelMode === 'registrar' ? 'Registrar nuevo técnico' : 'Editar técnico' }}
+      </h2>
+      <button class="btn-secondary" style="padding:0.4rem 0.85rem;font-size:0.82rem" (click)="cerrarPanel()">
+        Cancelar
+      </button>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="nombre">Nombre completo *</label>
+        <input id="nombre" type="text" [(ngModel)]="form.nombre" placeholder="Ej. Carlos Mamani" />
+      </div>
+      <div class="field">
+        <label for="especialidad">Especialidad *</label>
+        <input id="especialidad" type="text" [(ngModel)]="form.especialidad" placeholder="Ej. Motor y transmisión" />
+      </div>
+    </div>
+
+    <div class="field" style="max-width:340px">
+      <label for="telefono">Teléfono <span style="color:#9CA3AF">(opcional)</span></label>
+      <input id="telefono" type="tel" [(ngModel)]="form.telefono" placeholder="+591 7XXXXXXX" />
+    </div>
+
+    @if (formError) {
+      <div class="alert-danger">{{ formError }}</div>
+    }
+    @if (formSuccess) {
+      <div class="success-banner" style="margin-top:0.75rem">
+        <span class="material-symbols-outlined">check_circle</span>
+        <div><strong>{{ formSuccess }}</strong></div>
+      </div>
+    }
+
+    <div class="form-actions">
+      <button class="btn-primary" style="width:auto;padding:0.72rem 1.75rem;margin-top:0"
+              (click)="guardar()" [disabled]="guardando">
+        @if (guardando) {
+          <span class="spinner"></span>
+        } @else {
+          {{ panelMode === 'registrar' ? 'Registrar técnico' : 'Guardar cambios' }}
+        }
+      </button>
+    </div>
+  </div>
+}
+
+<!-- ── Error técnicos ─────────────────────────────────── -->
+@if (errorTecnicos) {
+  <div class="alert-danger">{{ errorTecnicos }}</div>
+}
+
+<!-- ── Tabla de técnicos ─────────────────────────────── -->
+@if (loadingTecnicos) {
+  <div class="loading-row">
+    <span class="spinner-dark"></span> Cargando técnicos...
+  </div>
+} @else if (tecnicos.length === 0) {
+  <div class="empty-state" style="margin-bottom:2rem">
+    <span class="material-symbols-outlined" style="font-size:40px;color:#9CA3AF">engineering</span>
+    <p>No hay técnicos registrados. Usa <strong>Nuevo Técnico</strong> para agregar el primero.</p>
+  </div>
+} @else {
+  <div class="table-card" style="margin-bottom:2rem">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nombre</th>
+          <th>Especialidad</th>
+          <th>Teléfono</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of tecnicos; track t.id) {
+          <tr>
+            <td class="td-id">{{ t.id }}</td>
+            <td class="td-name">{{ t.nombre }}</td>
+            <td>{{ t.especialidad }}</td>
+            <td class="td-contact">
+              @if (t.telefono) { {{ t.telefono }} }
+              @else { <span class="text-muted">—</span> }
+            </td>
+            <td>
+              <span class="badge" [ngClass]="badgeEstado(t.estado)">{{ t.estado }}</span>
+            </td>
+            <td class="td-actions">
+              <div class="action-btns">
+                <button class="btn-approve" (click)="abrirEditar(t)">
+                  <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px;vertical-align:middle">edit</span>
+                  Editar
+                </button>
+                <button class="btn-reject" (click)="desactivar(t)" [disabled]="desactivando[t.id]">
+                  @if (desactivando[t.id]) {
+                    <span class="spinner" style="border-color:rgba(153,27,27,0.3);border-top-color:#991B1B"></span>
+                  } @else {
+                    <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px;vertical-align:middle">person_off</span>
+                    Baja
+                  }
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<!-- ── Asignaciones pendientes ───────────────────────── -->
+<div class="page-header" style="margin-bottom:1rem">
+  <div>
+    <h2 style="font-size:1.1rem;font-weight:700;color:var(--text)">Solicitudes sin técnico asignado</h2>
+    <p class="page-sub">Asigna un técnico disponible a cada solicitud aceptada</p>
+  </div>
+  <button class="btn-secondary" (click)="cargarAsignaciones()" [disabled]="loadingAsig">
+    <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
+    Actualizar
+  </button>
+</div>
+
+@if (errorAsig) {
+  <div class="alert-danger">{{ errorAsig }}</div>
+}
+
+@if (loadingAsig) {
+  <div class="loading-row">
+    <span class="spinner-dark"></span> Cargando solicitudes...
+  </div>
+} @else if (asignaciones.length === 0) {
+  <div class="empty-state">
+    <span class="material-symbols-outlined" style="font-size:40px;color:#9CA3AF">task_alt</span>
+    <p>No hay solicitudes pendientes de asignación.</p>
+  </div>
+} @else {
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Asignación</th>
+          <th>Incidente #</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Asignar técnico</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (asig of asignaciones; track asig.id) {
+          <tr>
+            <td class="td-id">{{ asig.id }}</td>
+            <td><strong>#{{ asig.incidente_id }}</strong></td>
+            <td>
+              <span class="badge badge-warning">{{ asig.estado }}</span>
+            </td>
+            <td class="td-date text-muted">{{ asig.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              @if (asigMensaje[asig.id]; as msg) {
+                <span [class]="msg.tipo === 'ok' ? 'server-success' : 'server-error'">{{ msg.texto }}</span>
+              } @else {
+                <div style="display:flex;gap:0.5rem;align-items:center">
+                  <select
+                    style="padding:0.5rem 0.75rem;border:1.5px solid #E5E7EB;border-radius:8px;font-size:0.82rem;color:var(--text);outline:none;background:#fff;min-width:170px"
+                    [(ngModel)]="tecnicoSeleccionado[asig.id]">
+                    <option [ngValue]="null" disabled selected>— Seleccionar técnico —</option>
+                    @for (t of disponibles; track t.id) {
+                      <option [ngValue]="t.id">{{ t.nombre }} · {{ t.especialidad }}</option>
+                    }
+                  </select>
+                  <button
+                    class="btn-approve"
+                    (click)="asignar(asig)"
+                    [disabled]="asignandoId === asig.id">
+                    @if (asignandoId === asig.id) {
+                      <span class="spinner" style="border-color:rgba(6,95,70,0.3);border-top-color:#065F46"></span>
+                    } @else {
+                      Asignar
+                    }
+                  </button>
+                </div>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

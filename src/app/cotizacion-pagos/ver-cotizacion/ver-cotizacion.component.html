@@ -1,2 +1,68 @@
-<!-- CU24 - Ver Cotización -->
-<p>CU24 - Ver Cotización</p>
+<!-- CU20 · Ver Cotizaciones -->
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Cotizaciones</h1>
+    <p class="page-sub">CU20 · Historial de cotizaciones generadas por tu taller</p>
+  </div>
+  <div style="display:flex;gap:0.5rem">
+    <button class="btn-secondary" (click)="cargar()" [disabled]="loading">
+      <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
+      Actualizar
+    </button>
+    <a class="btn-primary" routerLink="/app/cotizacion-pagos/generar-cotizacion"
+       style="width:auto;padding:0.6rem 1.25rem;margin-top:0;text-decoration:none;
+              display:inline-flex;align-items:center;border-radius:8px;
+              background:var(--primary);color:#fff;font-weight:600;font-size:0.875rem">
+      <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">add</span>
+      Nueva cotización
+    </a>
+  </div>
+</div>
+
+@if (errorMsg) { <div class="alert-danger">{{ errorMsg }}</div> }
+
+@if (loading) {
+  <div class="loading-row"><span class="spinner-dark"></span> Cargando cotizaciones...</div>
+} @else if (cotizaciones.length === 0) {
+  <div class="empty-state">
+    <span class="material-symbols-outlined" style="font-size:40px;color:#9CA3AF">receipt_long</span>
+    <p>No has generado cotizaciones aún.</p>
+  </div>
+} @else {
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Incidente</th>
+          <th>Monto estimado</th>
+          <th>Estado</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of cotizaciones; track c.id) {
+          <tr>
+            <td class="td-id">{{ c.id }}</td>
+            <td><strong>#{{ c.incidente_id }}</strong></td>
+            <td style="font-weight:700;color:var(--primary)">
+              Bs. {{ c.monto_estimado | number:'1.2-2' }}
+            </td>
+            <td>
+              <span class="badge" [ngClass]="badgeEstado(c.estado)">{{ c.estado }}</span>
+            </td>
+            <td class="td-date text-muted">{{ c.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <button class="btn-approve" (click)="verDetalle(c.id)">
+                <span class="material-symbols-outlined" style="font-size:14px;margin-right:4px;vertical-align:middle">visibility</span>
+                Ver detalle
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

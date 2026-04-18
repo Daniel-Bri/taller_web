@@ -1,9 +1,118 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { TecnicoService, AsignacionResponse } from '../tecnico.service';
+
+interface EstadoInfo {
+  label: string;
+  badgeClass: string;
+  icon: string;
+}
+
+const ESTADO_INFO: Record<string, EstadoInfo> = {
+  aceptado:      { label: 'Aceptado',       badgeClass: 'badge-warning',  icon: 'check_circle'    },
+  en_camino:     { label: 'En camino',      badgeClass: 'badge-primary',  icon: 'directions_car'  },
+  en_sitio:      { label: 'En sitio',       badgeClass: 'badge-purple',   icon: 'location_on'     },
+  en_reparacion: { label: 'En reparación',  badgeClass: 'badge-orange',   icon: 'build'           },
+  finalizado:    { label: 'Finalizado',     badgeClass: 'badge-success',  icon: 'task_alt'        },
+  cancelado:     { label: 'Cancelado',      badgeClass: 'badge-danger',   icon: 'cancel'          },
+};
+
+const TRANSICIONES: Record<string, string[]> = {
+  aceptado:      ['en_camino', 'cancelado'],
+  en_camino:     ['en_sitio',  'cancelado'],
+  en_sitio:      ['en_reparacion'],
+  en_reparacion: ['finalizado'],
+};
+
+const PASOS = ['aceptado', 'en_camino', 'en_sitio', 'en_reparacion', 'finalizado'];
 
 @Component({
   selector: 'app-actualizar-estado-servicio',
   standalone: true,
-  imports: [],
+  imports: [CommonModule, FormsModule],
   templateUrl: './actualizar-estado-servicio.component.html',
 })
-export class ActualizarEstadoServicioComponent {}
+export class ActualizarEstadoServicioComponent implements OnInit {
+
+  asignaciones: AsignacionResponse[] = [];
+  loading  = false;
+  errorMsg = '';
+
+  // Por asignación: estado seleccionado, observación, cargando, mensaje
+  estadoSel:  Record<number, string>                              = {};
+  obsTexto:   Record<number, string>                             = {};
+  procesando: Record<number, boolean>                            = {};
+  mensajeFila: Record<number, { tipo: 'ok'|'error'; texto: string }> = {};
+
+  readonly estadoInfo   = ESTADO_INFO;
+  readonly transiciones = TRANSICIONES;
+  readonly pasos        = PASOS;
+
+  constructor(private svc: TecnicoService, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit(): void { this.cargar(); }
+
+  cargar(): void {
+    this.loading  = true;
+    this.errorMsg = '';
+    this.svc.listarActivas().subscribe({
+      next: (data) => {
+        this.asignaciones = data;
+        data.forEach((a) => {
+          const opts = TRANSICIONES[a.estado] ?? [];
+          this.estadoSel[a.id] = opts[0] ?? '';
+          this.obsTexto[a.id]  = '';
+        });
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.errorMsg = err.error?.detail ?? 'Error al cargar asignaciones';
+        this.loading  = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  opcionesTransicion(estado: string): string[] {
+    return TRANSICIONES[estado] ?? [];
+  }
+
+  guardar(a: AsignacionResponse): void {
+    const nuevoEstado = this.estadoSel[a.id];
+    if (!nuevoEstado) return;
+    this.procesando[a.id] = true;
+    delete this.mensajeFila[a.id];
+
+    this.svc.actualizarEstado(a.id, nuevoEstado, this.obsTexto[a.id] || undefined).subscribe({
+      next: (actualizada) => {
+        const idx = this.asignaciones.findIndex((x) => x.id === actualizada.id);
+        if (idx !== -1) this.asignaciones[idx] = actualizada;
+        // Si ya no es estado activo, quitar de la lista tras un momento
+        const activos = ['aceptado', 'en_camino', 'en_sitio', 'en_reparacion'];
+        if (!activos.includes(actualizada.estado)) {
+          setTimeout(() => {
+            this.asignaciones = this.asignaciones.filter((x) => x.id !== actualizada.id);
+            this.cdr.detectChanges();
+          }, 2500);
+        } else {
+          const opts = TRANSICIONES[actualizada.estado] ?? [];
+          this.estadoSel[actualizada.id] = opts[0] ?? '';
+          this.obsTexto[actualizada.id]  = '';
+        }
+        this.mensajeFila[a.id] = { tipo: 'ok', texto: `Estado actualizado a: ${ESTADO_INFO[actualizada.estado]?.label}` };
+        this.procesando[a.id]  = false;
+        this.cdr.detectChanges();
+        setTimeout(() => { delete this.mensajeFila[a.id]; this.cdr.detectChanges(); }, 3000);
+      },
+      error: (err) => {
+        this.mensajeFila[a.id] = { tipo: 'error', texto: err.error?.detail ?? 'Error al actualizar' };
+        this.procesando[a.id]  = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  pasoIndex(estado: string): number { return PASOS.indexOf(estado); }
+}
