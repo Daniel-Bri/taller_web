@@ -1,2 +1,139 @@
-<!-- CU21 - Chatear en Tiempo Real -->
-<p>CU21 - Chatear en Tiempo Real</p>
+<div class="chat-layout">
+
+  <!-- ── Panel izquierdo: lista de asignaciones ── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="material-symbols-outlined sidebar-icon">forum</span>
+      <span class="sidebar-title">Conversaciones</span>
+      <button class="refresh-btn" (click)="cargarAsignaciones()" title="Actualizar">
+        <span class="material-symbols-outlined">refresh</span>
+      </button>
+    </div>
+
+    @if (cargandoAsignaciones) {
+      <div class="loading-list">
+        <div class="spinner"></div>
+        <span>Cargando…</span>
+      </div>
+    }
+
+    @if (errorAsignaciones) {
+      <div class="alert-danger sidebar-alert">{{ errorAsignaciones }}</div>
+    }
+
+    @if (!cargandoAsignaciones && asignaciones.length === 0 && !errorAsignaciones) {
+      <div class="empty-sidebar">
+        <span class="material-symbols-outlined empty-icon">chat_bubble</span>
+        <p>Sin conversaciones activas</p>
+      </div>
+    }
+
+    <ul class="convo-list">
+      @for (asig of asignaciones; track asig.id) {
+        <li
+          class="convo-item"
+          [class.active]="asignacionSeleccionada?.id === asig.id"
+          (click)="seleccionarAsignacion(asig)"
+        >
+          <div class="convo-avatar">
+            <span class="material-symbols-outlined">handyman</span>
+          </div>
+          <div class="convo-info">
+            <span class="convo-label">Servicio #{{ asig.id }}</span>
+            <span class="convo-sub">Incidente #{{ asig.incidente_id }}</span>
+          </div>
+          <span
+            class="badge"
+            [ngClass]="{
+              'badge-success': asig.estado === 'en_camino' || asig.estado === 'en_servicio',
+              'badge-warning': asig.estado === 'pendiente',
+              'badge-primary': asig.estado === 'asignado',
+              'badge-muted':   asig.estado === 'completado'
+            }"
+          >{{ asig.estado }}</span>
+        </li>
+      }
+    </ul>
+  </aside>
+
+  <!-- ── Panel derecho: mensajes ── -->
+  <section class="chat-panel">
+
+    @if (!asignacionSeleccionada) {
+      <div class="empty-state">
+        <span class="material-symbols-outlined" style="font-size:52px;color:var(--primary);opacity:.35">forum</span>
+        <p class="empty-title">Selecciona una conversación</p>
+        <p class="empty-sub">Elige un servicio activo de la lista para ver su chat.</p>
+      </div>
+    }
+
+    @if (asignacionSeleccionada) {
+      <!-- Header del chat -->
+      <div class="chat-header">
+        <div class="chat-header-info">
+          <span class="material-symbols-outlined chat-header-icon">handyman</span>
+          <div>
+            <p class="chat-header-title">Servicio #{{ asignacionSeleccionada.id }}</p>
+            <p class="chat-header-sub">Incidente #{{ asignacionSeleccionada.incidente_id }} · {{ asignacionSeleccionada.estado }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Área de mensajes -->
+      <div class="messages-area">
+
+        @if (errorMensajes) {
+          <div class="alert-danger" style="margin:16px">{{ errorMensajes }}</div>
+        }
+
+        @if (mensajes.length === 0 && !errorMensajes) {
+          <div class="no-messages">
+            <span class="material-symbols-outlined" style="font-size:36px;opacity:.3">chat</span>
+            <p>Sin mensajes aún. ¡Sé el primero en escribir!</p>
+          </div>
+        }
+
+        @for (msg of mensajes; track msg.id) {
+          <div class="msg-row" [class.mine]="esMio(msg)" [class.theirs]="!esMio(msg)">
+            @if (!esMio(msg)) {
+              <div class="msg-avatar">{{ msg.remitente.charAt(0).toUpperCase() }}</div>
+            }
+            <div class="msg-bubble" [class.bubble-mine]="esMio(msg)" [class.bubble-theirs]="!esMio(msg)">
+              @if (!esMio(msg)) {
+                <span class="msg-sender">{{ msg.remitente }} · {{ rolLabel(msg.rol) }}</span>
+              }
+              <p class="msg-text">{{ msg.contenido }}</p>
+              <span class="msg-time">{{ formatTime(msg.created_at) }}</span>
+            </div>
+          </div>
+        }
+
+        <div #messagesEnd></div>
+      </div>
+
+      <!-- Input de mensaje -->
+      <div class="input-bar">
+        <textarea
+          class="msg-input"
+          [(ngModel)]="nuevoMensaje"
+          placeholder="Escribe un mensaje… (Enter para enviar)"
+          rows="1"
+          maxlength="2000"
+          (keydown)="onEnter($event)"
+        ></textarea>
+        <button
+          class="send-btn"
+          [disabled]="!nuevoMensaje.trim() || enviando"
+          (click)="enviarMensaje()"
+        >
+          @if (enviando) {
+            <div class="spinner-dark" style="width:18px;height:18px"></div>
+          } @else {
+            <span class="material-symbols-outlined">send</span>
+          }
+        </button>
+      </div>
+    }
+
+  </section>
+</div>

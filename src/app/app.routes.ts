@@ -12,6 +12,7 @@ import { RegistrarServicioRealizadoComponent } from './talleres-tecnicos/registr
 import { GenerarCotizacionComponent } from './cotizacion-pagos/generar-cotizacion/generar-cotizacion.component';
 import { VerCotizacionComponent } from './cotizacion-pagos/ver-cotizacion/ver-cotizacion.component';
 import { ConfirmarCotizacionComponent } from './cotizacion-pagos/confirmar-cotizacion/confirmar-cotizacion.component';
+import { ChatComponent } from './comunicacion/chat/chat.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -51,6 +52,9 @@ export const routes: Routes = [
       { path: 'cotizacion-pagos/generar-cotizacion',  component: GenerarCotizacionComponent },
       { path: 'cotizacion-pagos/ver-cotizacion',      component: VerCotizacionComponent },
       { path: 'cotizacion-pagos/confirmar-cotizacion', component: ConfirmarCotizacionComponent },
+
+      // ── CU18 · Chat ──────────────────────────────────
+      { path: 'comunicacion/chat',                    component: ChatComponent },
 
       // ── Stubs restantes ─────────────────────────────
       { path: 'emergencias/:cu',                      component: DashboardHomeComponent },
