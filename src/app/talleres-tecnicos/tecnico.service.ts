@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface TecnicoCreate {
   nombre: string;
@@ -75,7 +76,7 @@ export interface AsignacionResponse {
 
 @Injectable({ providedIn: 'root' })
 export class TecnicoService {
-  private readonly API = 'http://127.0.0.1:8000/api/talleres';
+  private readonly API = `${environment.apiUrl}/api/talleres`;
 
   constructor(private http: HttpClient) {}
 

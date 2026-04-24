@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface MensajeCreate {
   asignacion_id: number;
@@ -20,7 +21,7 @@ export interface MensajeResponse {
 
 @Injectable({ providedIn: 'root' })
 export class ComunicacionService {
-  private readonly API = 'http://127.0.0.1:8000/api/comunicacion';
+  private readonly API = `${environment.apiUrl}/api/comunicacion`;
 
   constructor(private http: HttpClient) {}
 

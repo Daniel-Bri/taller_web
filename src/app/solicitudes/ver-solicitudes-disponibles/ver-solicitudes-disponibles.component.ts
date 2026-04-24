@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SolicitudService, SolicitudDisponible } from '../solicitud.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-ver-solicitudes-disponibles',
@@ -107,6 +108,6 @@ export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
 
   fotoFullUrl(path: string): string {
     if (path.startsWith('http')) return path;
-    return `http://127.0.0.1:8000${path.startsWith('/') ? '' : '/'}${path}`;
+    return `${environment.apiUrl}${path.startsWith('/') ? '' : '/'}${path}`;
   }
 }

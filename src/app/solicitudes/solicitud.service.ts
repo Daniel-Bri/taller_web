@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 import { AsignacionResponse } from '../talleres-tecnicos/tecnico.service';
 
@@ -20,7 +21,7 @@ export interface SolicitudDisponible {
 
 @Injectable({ providedIn: 'root' })
 export class SolicitudService {
-  private readonly API = 'http://127.0.0.1:8000/api/solicitudes';
+  private readonly API = `${environment.apiUrl}/api/solicitudes`;
 
   constructor(private http: HttpClient) {}
 

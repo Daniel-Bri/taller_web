@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface ItemCotizacion {
   descripcion: string;
@@ -33,7 +34,7 @@ export interface IncidenteDisponible {
 
 @Injectable({ providedIn: 'root' })
 export class CotizacionService {
-  private readonly API = 'http://127.0.0.1:8000/api/pagos';
+  private readonly API = `${environment.apiUrl}/api/pagos`;
 
   constructor(private http: HttpClient) {}
 

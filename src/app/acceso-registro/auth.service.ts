@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface UserResponse {
   id: number;
@@ -33,7 +34,7 @@ export interface LoginPayload {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly API = 'http://127.0.0.1:8000/api/acceso';
+  private readonly API = `${environment.apiUrl}/api/acceso`;
   private readonly TOKEN_KEY = 'access_token';
   private readonly USER_KEY  = 'taller_user';
 

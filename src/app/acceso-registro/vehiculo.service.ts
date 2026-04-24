@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { timeout } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 export interface VehiculoPayload {
   placa: string;
@@ -49,7 +50,7 @@ export interface TallerResponse {
 
 @Injectable({ providedIn: 'root' })
 export class VehiculoService {
-  private readonly API = 'http://127.0.0.1:8000/api/acceso';
+  private readonly API = `${environment.apiUrl}/api/acceso`;
 
   constructor(private http: HttpClient) {}
 
