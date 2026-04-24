@@ -1,2 +1,99 @@
 <!-- CU10 - Ver Estado de Solicitud -->
-<p>CU10 - Ver Estado de Solicitud</p>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Mis solicitudes</h1>
+    <p class="page-sub">CU10 · Estado de tus incidentes reportados</p>
+  </div>
+  <button class="btn-secondary" type="button" (click)="cargar()" [disabled]="loading">
+    <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
+    Actualizar
+  </button>
+</div>
+
+@if (errorMsg && !loading) {
+  <div class="alert-danger">{{ errorMsg }}</div>
+}
+
+@if (loading && items.length === 0) {
+  <div class="loading-row">
+    <span class="spinner-dark"></span> Cargando solicitudes...
+  </div>
+} @else if (!loading && items.length === 0) {
+  <div class="empty-state">
+    <span class="material-symbols-outlined" style="font-size:40px;color:#9CA3AF">assignment</span>
+    <p>No tienes solicitudes registradas.</p>
+    <p style="font-size:0.85rem;color:#6B7280;margin-top:0.5rem">
+      Tus incidentes reportados aparecerán aquí con el estado de atención.
+    </p>
+  </div>
+} @else {
+  <div style="display:flex;flex-direction:column;gap:1rem">
+    @for (row of items; track row.incidente.id) {
+      <div class="form-card" style="padding:1.25rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+          <div>
+            <span style="font-size:1rem;font-weight:700;color:var(--text)">Solicitud #{{ row.incidente.id }}</span>
+            <span style="margin-left:0.75rem" class="badge" [ngClass]="badgeClass(row.incidente.estado)">
+              {{ labelIncidente(row.incidente.estado) }}
+            </span>
+          </div>
+          <span style="font-size:0.8rem;color:#9CA3AF">
+            {{ row.incidente.created_at | date:'medium' }}
+          </span>
+        </div>
+
+        <div style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.5rem 1.5rem">
+          <span style="font-size:0.88rem;color:#374151">
+            <strong>Prioridad:</strong>
+            <span class="badge" [ngClass]="badgeClass(row.incidente.prioridad)" style="margin-left:4px">
+              {{ row.incidente.prioridad | titlecase }}
+            </span>
+          </span>
+          @if (row.incidente.descripcion) {
+            <span style="font-size:0.88rem;color:#374151">
+              <strong>Descripción:</strong> {{ row.incidente.descripcion }}
+            </span>
+          }
+        </div>
+
+        @if (row.asignacion) {
+          <div style="margin-top:1rem;padding:0.75rem;background:#F9FAFB;border-radius:8px;border:1px solid #E5E7EB">
+            <div style="font-size:0.82rem;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:0.5rem">
+              Asignación
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem 1.5rem">
+              <span style="font-size:0.88rem;color:#374151">
+                <span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;margin-right:4px;color:#6B7280">handyman</span>
+                <strong>Taller:</strong> {{ row.asignacion.taller_nombre ?? '—' }}
+              </span>
+              <span style="font-size:0.88rem;color:#374151">
+                <span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;margin-right:4px;color:#6B7280">local_shipping</span>
+                <strong>Estado:</strong>
+                <span class="badge" [ngClass]="badgeClass(row.asignacion.estado)" style="margin-left:4px">
+                  {{ labelAsignacion(row.asignacion.estado) }}
+                </span>
+              </span>
+              @if (row.asignacion.eta) {
+                <span style="font-size:0.88rem;color:#374151">
+                  <span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;margin-right:4px;color:#6B7280">schedule</span>
+                  <strong>ETA:</strong> {{ row.asignacion.eta }} min
+                </span>
+              }
+              @if (row.asignacion.observacion) {
+                <span style="font-size:0.88rem;color:#374151;width:100%">
+                  <strong>Observación:</strong> {{ row.asignacion.observacion }}
+                </span>
+              }
+            </div>
+          </div>
+        } @else {
+          <div style="margin-top:0.75rem;font-size:0.88rem;color:#6B7280">
+            <span class="material-symbols-outlined" style="font-size:15px;vertical-align:middle;margin-right:4px">hourglass_empty</span>
+            Aún no hay taller asignado.
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

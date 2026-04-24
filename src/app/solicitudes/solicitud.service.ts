@@ -6,6 +6,33 @@ import { environment } from '../../environments/environment';
 
 import { AsignacionResponse } from '../talleres-tecnicos/tecnico.service';
 
+export interface AsignacionResumen {
+  id: number;
+  estado: string;
+  eta: number | null;
+  taller_id: number;
+  taller_nombre: string | null;
+  tecnico_id: number | null;
+  observacion: string | null;
+}
+
+export interface IncidenteResumen {
+  id: number;
+  vehiculo_id: number;
+  estado: string;
+  prioridad: string;
+  descripcion: string | null;
+  latitud: number | null;
+  longitud: number | null;
+  created_at: string;
+}
+
+export interface MiSolicitud {
+  incidente: IncidenteResumen;
+  asignacion: AsignacionResumen | null;
+  fotos_urls: string[];
+}
+
 export interface SolicitudDisponible {
   incidente_id: number;
   latitud: number;
@@ -24,6 +51,12 @@ export class SolicitudService {
   private readonly API = `${environment.apiUrl}/api/solicitudes`;
 
   constructor(private http: HttpClient) {}
+
+  misSolicitudes(): Observable<MiSolicitud[]> {
+    return this.http
+      .get<MiSolicitud[]>(`${environment.apiUrl}/api/emergencias/mis-solicitudes`)
+      .pipe(timeout(12000));
+  }
 
   listarDisponibles(): Observable<SolicitudDisponible[]> {
     return this.http.get<SolicitudDisponible[]>(`${this.API}/disponibles`).pipe(timeout(12000));

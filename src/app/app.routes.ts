@@ -13,6 +13,10 @@ import { GenerarCotizacionComponent } from './cotizacion-pagos/generar-cotizacio
 import { VerCotizacionComponent } from './cotizacion-pagos/ver-cotizacion/ver-cotizacion.component';
 import { ConfirmarCotizacionComponent } from './cotizacion-pagos/confirmar-cotizacion/confirmar-cotizacion.component';
 import { ChatComponent } from './comunicacion/chat/chat.component';
+import { AdjuntarFotosComponent } from './emergencias/adjuntar-fotos/adjuntar-fotos.component';
+import { EnviarAudioComponent } from './emergencias/enviar-audio/enviar-audio.component';
+import { VerSolicitudesDisponiblesComponent } from './solicitudes/ver-solicitudes-disponibles/ver-solicitudes-disponibles.component';
+import { VerEstadoSolicitudComponent } from './solicitudes/ver-estado-solicitud/ver-estado-solicitud.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -55,6 +59,18 @@ export const routes: Routes = [
 
       // ── CU18 · Chat ──────────────────────────────────
       { path: 'comunicacion/chat',                    component: ChatComponent },
+
+      // ── CU07 · Adjuntar Fotos ────────────────────────
+      { path: 'emergencias/adjuntar-fotos',           component: AdjuntarFotosComponent },
+
+      // ── CU08 · Enviar Audio ──────────────────────────
+      { path: 'emergencias/enviar-audio',             component: EnviarAudioComponent },
+
+      // ── CU13 · Ver Solicitudes Disponibles ───────────
+      { path: 'solicitudes/ver-solicitudes-disponibles', component: VerSolicitudesDisponiblesComponent },
+
+      // ── CU10 · Ver Estado de Solicitud ───────────────
+      { path: 'solicitudes/ver-estado-solicitud',     component: VerEstadoSolicitudComponent },
 
       // ── Stubs restantes ─────────────────────────────
       { path: 'emergencias/:cu',                      component: DashboardHomeComponent },
