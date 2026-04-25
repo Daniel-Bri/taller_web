@@ -5,6 +5,7 @@ import { AppLayoutComponent } from './shared/layout/app-layout.component';
 import { DashboardHomeComponent } from './dashboard/dashboard-home.component';
 import { RegistrarTallerComponent } from './acceso-registro/registrar-taller/registrar-taller.component';
 import { AprobarTalleresComponent } from './acceso-registro/aprobar-talleres/aprobar-talleres.component';
+import { GestionarUsuariosComponent } from './acceso-registro/gestionar-usuarios/gestionar-usuarios.component';
 import { GestionarTecnicosComponent } from './talleres-tecnicos/gestionar-tecnicos/gestionar-tecnicos.component';
 import { GestionarDisponibilidadComponent } from './talleres-tecnicos/gestionar-disponibilidad/gestionar-disponibilidad.component';
 import { ActualizarEstadoServicioComponent } from './talleres-tecnicos/actualizar-estado-servicio/actualizar-estado-servicio.component';
@@ -17,6 +18,7 @@ import { AdjuntarFotosComponent } from './emergencias/adjuntar-fotos/adjuntar-fo
 import { EnviarAudioComponent } from './emergencias/enviar-audio/enviar-audio.component';
 import { VerSolicitudesDisponiblesComponent } from './solicitudes/ver-solicitudes-disponibles/ver-solicitudes-disponibles.component';
 import { VerEstadoSolicitudComponent } from './solicitudes/ver-estado-solicitud/ver-estado-solicitud.component';
+import { AuditoriaComponent } from './reportes/auditoria/auditoria.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -32,56 +34,58 @@ export const routes: Routes = [
       { path: '',          redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardHomeComponent },
 
-      // ── Acceso y Registro ──────────────────────
+      // ── Acceso y Registro ──────────────────────────────────
       { path: 'acceso-registro/registrar-taller',     component: RegistrarTallerComponent },
-
-      // ── Acceso admin ───────────────────────────────────
-      { path: 'acceso-registro/gestionar-vehiculos',  component: DashboardHomeComponent },
-      { path: 'acceso-registro/gestionar-usuarios',   component: DashboardHomeComponent },
       { path: 'acceso-registro/aprobar-talleres',     component: AprobarTalleresComponent },
 
-      // ── CU15 · Actualizar Estado Servicio ───────────
+      // ── CU27 · Gestionar Usuarios (Admin) ──────────────────
+      { path: 'acceso-registro/gestionar-usuarios',   component: GestionarUsuariosComponent },
+      { path: 'acceso-registro/gestionar-vehiculos',  component: DashboardHomeComponent },
+
+      // ── CU15 · Actualizar Estado Servicio ──────────────────
       { path: 'talleres-tecnicos/actualizar-estado-servicio',   component: ActualizarEstadoServicioComponent },
 
-      // ── CU22 · Registrar Servicio Realizado ──────────
+      // ── CU22 · Registrar Servicio Realizado ────────────────
       { path: 'talleres-tecnicos/registrar-servicio-realizado', component: RegistrarServicioRealizadoComponent },
 
-      // ── CU25 · Gestionar Técnicos ───────────────────
-      { path: 'talleres-tecnicos/gestionar-tecnicos',      component: GestionarTecnicosComponent },
+      // ── CU25 · Gestionar Técnicos ──────────────────────────
+      { path: 'talleres-tecnicos/gestionar-tecnicos',           component: GestionarTecnicosComponent },
 
-      // ── CU16 · Gestionar Disponibilidad ─────────────
-      { path: 'talleres-tecnicos/gestionar-disponibilidad', component: GestionarDisponibilidadComponent },
+      // ── CU16 · Gestionar Disponibilidad ───────────────────
+      { path: 'talleres-tecnicos/gestionar-disponibilidad',     component: GestionarDisponibilidadComponent },
 
-      // ── CU20 · Gestionar Cotización ─────────────────
-      { path: 'cotizacion-pagos/generar-cotizacion',  component: GenerarCotizacionComponent },
-      { path: 'cotizacion-pagos/ver-cotizacion',      component: VerCotizacionComponent },
+      // ── CU20 · Gestionar Cotización ────────────────────────
+      { path: 'cotizacion-pagos/generar-cotizacion',   component: GenerarCotizacionComponent },
+      { path: 'cotizacion-pagos/ver-cotizacion',       component: VerCotizacionComponent },
       { path: 'cotizacion-pagos/confirmar-cotizacion', component: ConfirmarCotizacionComponent },
 
-      // ── CU18 · Chat ──────────────────────────────────
-      { path: 'comunicacion/chat',                    component: ChatComponent },
+      // ── CU18 · Chat ────────────────────────────────────────
+      { path: 'comunicacion/chat',                     component: ChatComponent },
 
-      // ── CU07 · Adjuntar Fotos ────────────────────────
-      { path: 'emergencias/adjuntar-fotos',           component: AdjuntarFotosComponent },
+      // ── CU07 · Adjuntar Fotos ──────────────────────────────
+      { path: 'emergencias/adjuntar-fotos',            component: AdjuntarFotosComponent },
 
-      // ── CU08 · Enviar Audio ──────────────────────────
-      { path: 'emergencias/enviar-audio',             component: EnviarAudioComponent },
+      // ── CU08 · Enviar Audio ────────────────────────────────
+      { path: 'emergencias/enviar-audio',              component: EnviarAudioComponent },
 
-      // ── CU13 · Ver Solicitudes Disponibles ───────────
+      // ── CU13 · Ver Solicitudes Disponibles ────────────────
       { path: 'solicitudes/ver-solicitudes-disponibles', component: VerSolicitudesDisponiblesComponent },
 
-      // ── CU10 · Ver Estado de Solicitud ───────────────
-      { path: 'solicitudes/ver-estado-solicitud',     component: VerEstadoSolicitudComponent },
+      // ── CU10 · Ver Estado de Solicitud ────────────────────
+      { path: 'solicitudes/ver-estado-solicitud',      component: VerEstadoSolicitudComponent },
 
-      // ── Stubs restantes ─────────────────────────────
-      { path: 'emergencias/:cu',                      component: DashboardHomeComponent },
-      { path: 'solicitudes/:cu',                      component: DashboardHomeComponent },
-      { path: 'talleres-tecnicos/:cu',                component: DashboardHomeComponent },
-      { path: 'cotizacion-pagos/:cu',                 component: DashboardHomeComponent },
-      { path: 'comunicacion/:cu',                     component: DashboardHomeComponent },
-      { path: 'reportes/:cu',                         component: DashboardHomeComponent },
+      // ── CU35 · Auditoría / Bitácora (Admin) ───────────────
+      { path: 'reportes/auditoria',                    component: AuditoriaComponent },
+
+      // ── Stubs restantes ───────────────────────────────────
+      { path: 'emergencias/:cu',       component: DashboardHomeComponent },
+      { path: 'solicitudes/:cu',       component: DashboardHomeComponent },
+      { path: 'talleres-tecnicos/:cu', component: DashboardHomeComponent },
+      { path: 'cotizacion-pagos/:cu',  component: DashboardHomeComponent },
+      { path: 'comunicacion/:cu',      component: DashboardHomeComponent },
+      { path: 'reportes/:cu',          component: DashboardHomeComponent },
     ],
   },
 
-  // Compatibilidad con redirect antiguo
   { path: 'dashboard', redirectTo: 'app/dashboard', pathMatch: 'full' },
 ];

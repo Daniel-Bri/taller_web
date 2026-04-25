@@ -33,6 +33,32 @@ export interface TallerPayload {
   longitud?: number;
 }
 
+export interface UserDetailResponse {
+  id: number;
+  email: string;
+  username: string;
+  full_name: string | null;
+  telefono: string | null;
+  is_active: boolean;
+  role: string;
+  created_at: string;
+}
+
+export interface UserListResponse {
+  items: UserDetailResponse[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
+export interface UserPayload {
+  full_name?: string;
+  telefono?: string;
+  email?: string;
+  role?: string;
+}
+
 export interface TallerResponse {
   id: number;
   usuario_id: number;
@@ -81,5 +107,32 @@ export class VehiculoService {
 
   rechazarTaller(id: number): Observable<TallerResponse> {
     return this.http.patch<TallerResponse>(`${this.API}/talleres/${id}/rechazar`, {}).pipe(timeout(8000));
+  }
+
+  // ── CU27 - Gestionar usuarios ──────────────────────────────
+  listarUsuarios(params: {
+    role?: string; activo?: boolean; search?: string; page?: number; size?: number;
+  } = {}): Observable<UserListResponse> {
+    let query = '';
+    const p: string[] = [];
+    if (params.role)             p.push(`role=${params.role}`);
+    if (params.activo !== undefined) p.push(`activo=${params.activo}`);
+    if (params.search)           p.push(`search=${encodeURIComponent(params.search)}`);
+    if (params.page)             p.push(`page=${params.page}`);
+    if (params.size)             p.push(`size=${params.size}`);
+    if (p.length) query = '?' + p.join('&');
+    return this.http.get<UserListResponse>(`${this.API}/usuarios${query}`).pipe(timeout(8000));
+  }
+
+  actualizarUsuario(id: number, data: Partial<UserPayload>): Observable<UserDetailResponse> {
+    return this.http.patch<UserDetailResponse>(`${this.API}/usuarios/${id}`, data).pipe(timeout(8000));
+  }
+
+  activarUsuario(id: number): Observable<UserDetailResponse> {
+    return this.http.patch<UserDetailResponse>(`${this.API}/usuarios/${id}/activar`, {}).pipe(timeout(8000));
+  }
+
+  desactivarUsuario(id: number): Observable<UserDetailResponse> {
+    return this.http.patch<UserDetailResponse>(`${this.API}/usuarios/${id}/desactivar`, {}).pipe(timeout(8000));
   }
 }

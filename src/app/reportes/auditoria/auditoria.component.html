@@ -1,2 +1,173 @@
-<!-- CU36 - Ver Auditoría del Sistema -->
-<p>CU36 - Ver Auditoría del Sistema</p>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Auditoría / Bitácora</h1>
+    <p class="page-sub">Registro cronológico de acciones realizadas en el sistema</p>
+  </div>
+  <div style="display:flex;gap:0.5rem;align-items:center;">
+    <span class="badge badge-muted" style="font-size:0.82rem;padding:0.4rem 0.9rem;">{{ total }} evento{{ total !== 1 ? 's' : '' }}</span>
+    <button class="btn-secondary" style="padding:0.45rem 1rem;font-size:0.82rem;" (click)="exportar()">
+      ↓ Exportar CSV
+    </button>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1.25rem;align-items:flex-end;">
+  <div class="field" style="margin:0;">
+    <label>Desde</label>
+    <input type="date" [(ngModel)]="desde" style="height:38px;padding:0.4rem 0.75rem;"/>
+  </div>
+  <div class="field" style="margin:0;">
+    <label>Hasta</label>
+    <input type="date" [(ngModel)]="hasta" style="height:38px;padding:0.4rem 0.75rem;"/>
+  </div>
+  <div class="field" style="margin:0;">
+    <label>Acción</label>
+    <select [(ngModel)]="accionFiltro" style="height:38px;padding:0.4rem 0.75rem;">
+      <option value="">Todas las acciones</option>
+      @for (a of acciones; track a) {
+        <option [value]="a">{{ a }}</option>
+      }
+    </select>
+  </div>
+  <div style="display:flex;gap:0.5rem;">
+    <button class="btn-primary" style="width:auto;padding:0.5rem 1.25rem;margin:0;"
+            (click)="buscar()" [disabled]="loading">
+      @if (loading) { <span class="spinner"></span> } @else { Filtrar }
+    </button>
+    <button class="btn-secondary" style="padding:0.5rem 1rem;" (click)="limpiar()">
+      Limpiar
+    </button>
+  </div>
+</div>
+
+@if (errorMsg) {
+  <div class="alert-danger">{{ errorMsg }}</div>
+}
+
+<!-- Tabla -->
+<div class="table-card">
+  @if (loading && eventos.length === 0) {
+    <div class="loading-row"><span class="spinner-dark"></span>&nbsp; Cargando bitácora…</div>
+  } @else if (eventos.length === 0) {
+    <div class="empty-state">
+      <p>No hay registros en el rango consultado.</p>
+    </div>
+  } @else {
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Fecha / Hora</th>
+          <th>Usuario</th>
+          <th>Acción</th>
+          <th>Entidad</th>
+          <th>IP</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of eventos; track e.id) {
+          <tr style="cursor:pointer;" (click)="verDetalle(e)">
+            <td class="td-id">{{ e.id }}</td>
+            <td class="td-date" style="white-space:nowrap;">
+              {{ e.created_at | date:'dd/MM/yyyy HH:mm:ss' }}
+            </td>
+            <td>
+              @if (e.usuario_nombre) {
+                <span style="font-weight:600;">{{ e.usuario_nombre }}</span>
+              } @else {
+                <span class="text-muted">Sistema</span>
+              }
+              @if (e.usuario_id) {
+                <span class="text-muted" style="font-size:0.75rem;"> #{{ e.usuario_id }}</span>
+              }
+            </td>
+            <td>
+              <span class="badge" [ngClass]="badgeAccion(e.accion)">{{ e.accion }}</span>
+            </td>
+            <td>
+              @if (e.entidad) {
+                <span>{{ e.entidad }}</span>
+                @if (e.entidad_id) {
+                  <span class="text-muted"> #{{ e.entidad_id }}</span>
+                }
+              } @else {
+                <span class="text-muted">—</span>
+              }
+            </td>
+            <td class="td-contact">{{ e.ip || '—' }}</td>
+            <td>
+              <span style="color:var(--primary);font-size:0.8rem;cursor:pointer;">Ver detalle</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <!-- Paginación -->
+    @if (pages > 1) {
+      <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;padding:1rem;border-top:1px solid #F3F4F6;">
+        <button class="btn-secondary" style="padding:0.35rem 0.75rem;"
+                [disabled]="page <= 1" (click)="cambiarPagina(page - 1)">‹</button>
+        @for (_ of [].constructor(pages); track $index) {
+          <button class="filter-btn" [class.active]="page === $index + 1"
+                  (click)="cambiarPagina($index + 1)">{{ $index + 1 }}</button>
+        }
+        <button class="btn-secondary" style="padding:0.35rem 0.75rem;"
+                [disabled]="page >= pages" (click)="cambiarPagina(page + 1)">›</button>
+      </div>
+    }
+  }
+</div>
+
+<!-- Modal detalle -->
+@if (detalle) {
+  <div style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;
+              display:flex;align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:#fff;border-radius:14px;padding:2rem;width:100%;max-width:560px;
+                box-shadow:0 8px 40px rgba(0,0,0,0.18);max-height:85vh;overflow-y:auto;">
+      <div class="page-header" style="margin-bottom:1.5rem;">
+        <div>
+          <h2 class="page-title" style="font-size:1.1rem;">Detalle del evento #{{ detalle.id }}</h2>
+          <p class="page-sub">{{ detalle.created_at | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+        </div>
+        <button (click)="cerrarDetalle()" style="background:none;border:none;cursor:pointer;
+                color:#9CA3AF;font-size:1.4rem;line-height:1;">✕</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+        <div>
+          <div class="section-title">Usuario</div>
+          <div style="font-weight:600;">{{ detalle.usuario_nombre || 'Sistema' }}</div>
+          @if (detalle.usuario_id) { <div class="text-muted" style="font-size:0.8rem;">ID: {{ detalle.usuario_id }}</div> }
+        </div>
+        <div>
+          <div class="section-title">Acción</div>
+          <span class="badge" [ngClass]="badgeAccion(detalle.accion)">{{ detalle.accion }}</span>
+        </div>
+        <div>
+          <div class="section-title">Entidad</div>
+          <div>{{ detalle.entidad || '—' }} {{ detalle.entidad_id ? '#' + detalle.entidad_id : '' }}</div>
+        </div>
+        <div>
+          <div class="section-title">IP</div>
+          <div>{{ detalle.ip || '—' }}</div>
+        </div>
+      </div>
+
+      @if (detalle.detalle) {
+        <div class="section-title">Detalle de cambios</div>
+        <pre style="background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:8px;
+                    padding:1rem;font-size:0.78rem;overflow-x:auto;white-space:pre-wrap;
+                    color:var(--text);max-height:300px;overflow-y:auto;">{{ formatDetalle(detalle.detalle) }}</pre>
+      }
+
+      <div style="display:flex;justify-content:flex-end;margin-top:1.5rem;">
+        <button class="btn-primary" style="width:auto;padding:0.72rem 1.5rem;" (click)="cerrarDetalle()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
