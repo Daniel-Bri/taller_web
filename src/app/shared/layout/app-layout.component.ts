@@ -2,9 +2,10 @@ import { Component, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../acceso-registro/auth.service';
+import { type AppRole } from '../../core/permissions/permissions.config';
 
-interface NavItem    { label: string; route: string; roles?: string[]; }
-interface NavSection { id: string; label: string; icon: string; items: NavItem[]; roles?: string[]; }
+interface NavItem    { label: string; route: string; roles: AppRole[]; }
+interface NavSection { id: string; label: string; icon: string; items: NavItem[]; }
 
 @Component({
   selector: 'app-layout',
@@ -15,16 +16,17 @@ interface NavSection { id: string; label: string; icon: string; items: NavItem[]
 })
 export class AppLayoutComponent {
   collapsed = signal(false);
-  openSections = new Set<string>(['acceso']);
+  openSections = new Set<string>();
 
-  private readonly ALL_NAV_SECTIONS: NavSection[] = [
+  // Todos los módulos siempre visibles — el guard + lógica de bloqueo maneja acceso
+  readonly ALL_NAV_SECTIONS: NavSection[] = [
     {
       id: 'acceso',
       label: 'Acceso y Registro',
       icon: 'manage_accounts',
       items: [
         { label: 'Mis Vehículos',      route: '/app/acceso-registro/gestionar-vehiculos',  roles: ['cliente'] },
-        { label: 'Registrar Taller',   route: '/app/acceso-registro/registrar-taller',     roles: ['cliente'] },
+        { label: 'Registrar Taller',   route: '/app/acceso-registro/registrar-taller',     roles: ['taller'] },
         { label: 'Gestionar Usuarios', route: '/app/acceso-registro/gestionar-usuarios',   roles: ['admin'] },
         { label: 'Aprobar Talleres',   route: '/app/acceso-registro/aprobar-talleres',     roles: ['admin'] },
       ],
@@ -33,11 +35,11 @@ export class AppLayoutComponent {
       id: 'emergencias',
       label: 'Emergencias',
       icon: 'emergency',
-      roles: ['cliente'],
       items: [
-        { label: 'Reportar Emergencia', route: '/app/emergencias/reportar-emergencia' },
-        { label: 'Enviar Ubicación',    route: '/app/emergencias/enviar-ubicacion' },
-        { label: 'Adjuntar Fotos',      route: '/app/emergencias/adjuntar-fotos' },
+        { label: 'Reportar Emergencia',  route: '/app/emergencias/reportar-emergencia', roles: ['cliente'] },
+        { label: 'Enviar Ubicación GPS', route: '/app/emergencias/enviar-ubicacion',    roles: ['cliente'] },
+        { label: 'Adjuntar Fotos',       route: '/app/emergencias/adjuntar-fotos',      roles: ['cliente'] },
+        { label: 'Enviar Audio',         route: '/app/emergencias/enviar-audio',        roles: ['cliente'] },
       ],
     },
     {
@@ -48,17 +50,17 @@ export class AppLayoutComponent {
         { label: 'Ver Disponibles',   route: '/app/solicitudes/ver-solicitudes-disponibles', roles: ['taller'] },
         { label: 'Ver Estado',        route: '/app/solicitudes/ver-estado-solicitud',        roles: ['cliente'] },
         { label: 'Detalle Incidente', route: '/app/solicitudes/ver-detalle-incidente',       roles: ['taller'] },
+        { label: 'Cancelar Solicitud',route: '/app/solicitudes/cancelar-solicitud',          roles: ['cliente'] },
       ],
     },
     {
       id: 'talleres',
       label: 'Talleres y Técnicos',
       icon: 'handyman',
-      roles: ['taller', 'tecnico'],
       items: [
-        { label: 'Gestionar Técnicos',       route: '/app/talleres-tecnicos/gestionar-tecnicos',          roles: ['taller'] },
-        { label: 'Gestionar Disponibilidad', route: '/app/talleres-tecnicos/gestionar-disponibilidad',    roles: ['taller'] },
-        { label: 'Actualizar Estado',        route: '/app/talleres-tecnicos/actualizar-estado-servicio',  roles: ['taller', 'tecnico'] },
+        { label: 'Gestionar Técnicos',       route: '/app/talleres-tecnicos/gestionar-tecnicos',           roles: ['taller'] },
+        { label: 'Gestionar Disponibilidad', route: '/app/talleres-tecnicos/gestionar-disponibilidad',     roles: ['taller'] },
+        { label: 'Actualizar Estado',        route: '/app/talleres-tecnicos/actualizar-estado-servicio',   roles: ['taller', 'tecnico'] },
         { label: 'Registrar Servicio',       route: '/app/talleres-tecnicos/registrar-servicio-realizado', roles: ['taller', 'tecnico'] },
       ],
     },
@@ -69,6 +71,7 @@ export class AppLayoutComponent {
       items: [
         { label: 'Generar Cotización',   route: '/app/cotizacion-pagos/generar-cotizacion',   roles: ['taller'] },
         { label: 'Ver Cotizaciones',     route: '/app/cotizacion-pagos/ver-cotizacion',       roles: ['taller', 'cliente'] },
+        { label: 'Confirmar Cotización', route: '/app/cotizacion-pagos/confirmar-cotizacion', roles: ['taller'] },
         { label: 'Realizar Pago',        route: '/app/cotizacion-pagos/realizar-pago',        roles: ['cliente'] },
         { label: 'Ver Comisiones',       route: '/app/cotizacion-pagos/ver-comisiones',       roles: ['taller', 'admin'] },
       ],
@@ -78,8 +81,8 @@ export class AppLayoutComponent {
       label: 'Comunicación',
       icon: 'forum',
       items: [
-        { label: 'Chat',             route: '/app/comunicacion/chat' },
-        { label: 'Notificaciones',   route: '/app/comunicacion/notificaciones' },
+        { label: 'Chat',             route: '/app/comunicacion/chat',             roles: ['cliente', 'taller', 'tecnico'] },
+        { label: 'Notificaciones',   route: '/app/comunicacion/notificaciones',   roles: ['cliente', 'taller'] },
         { label: 'Técnico en Mapa',  route: '/app/comunicacion/ver-tecnico-mapa', roles: ['cliente'] },
       ],
     },
@@ -88,44 +91,55 @@ export class AppLayoutComponent {
       label: 'Reportes',
       icon: 'analytics',
       items: [
-        { label: 'Historial',         route: '/app/reportes/historial-servicios',  roles: ['taller', 'cliente', 'tecnico'] },
-        { label: 'Métricas Taller',   route: '/app/reportes/metricas-taller',      roles: ['taller'] },
-        { label: 'Métricas Globales', route: '/app/reportes/metricas-globales',    roles: ['admin'] },
-        { label: 'Auditoría',         route: '/app/reportes/auditoria',            roles: ['admin'] },
+        { label: 'Historial Servicios', route: '/app/reportes/historial-servicios', roles: ['cliente', 'taller'] },
+        { label: 'Calificar Servicio',  route: '/app/reportes/calificar-servicio',  roles: ['cliente'] },
+        { label: 'Métricas Taller',     route: '/app/reportes/metricas-taller',     roles: ['taller'] },
+        { label: 'Métricas Globales',   route: '/app/reportes/metricas-globales',   roles: ['admin'] },
+        { label: 'Auditoría',           route: '/app/reportes/auditoria',           roles: ['admin'] },
       ],
     },
   ];
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, readonly router: Router) {}
 
-  get user()       { return this.auth.getUser(); }
-  get userRole()   { return this.user?.role ?? 'cliente'; }
-  get userInitial(){ return (this.user?.username ?? 'U')[0].toUpperCase(); }
-  get userName()   { return this.user?.full_name || this.user?.username || 'Usuario'; }
+  get user()         { return this.auth.getUser(); }
+  get userRole()     { return (this.user?.role ?? 'cliente') as AppRole; }
+  get userInitial()  { return (this.user?.username ?? 'U')[0].toUpperCase(); }
+  get userName()     { return this.user?.full_name || this.user?.username || 'Usuario'; }
 
   get userRoleLabel(): string {
-    const labels: Record<string, string> = {
+    const map: Record<string, string> = {
       admin: 'Administrador', taller: 'Taller', tecnico: 'Técnico', cliente: 'Cliente',
     };
-    return labels[this.userRole] ?? 'Usuario';
+    return map[this.userRole] ?? 'Usuario';
   }
 
-  get navSections(): NavSection[] {
-    const role = this.userRole;
-    return this.ALL_NAV_SECTIONS
-      .filter(s => !s.roles || s.roles.includes(role))
-      .map(s => ({
-        ...s,
-        items: s.items.filter(i => !i.roles || i.roles.includes(role)),
-      }))
-      .filter(s => s.items.length > 0);
+  // Todos los módulos siempre visibles
+  get navSections(): NavSection[] { return this.ALL_NAV_SECTIONS; }
+
+  /** ¿El usuario tiene acceso a al menos un item de la sección? */
+  sectionAccessible(section: NavSection): boolean {
+    return section.items.some(i => i.roles.includes(this.userRole));
   }
 
-  toggle()             { this.collapsed.update(v => !v); }
+  /** ¿El usuario puede acceder a este item? */
+  itemAccessible(item: NavItem): boolean {
+    return item.roles.includes(this.userRole);
+  }
+
+  navigateLocked(): void {
+    this.router.navigate(['/app/acceso-denegado']);
+  }
+
+  toggle()               { this.collapsed.update(v => !v); }
   toggleSection(id: string) {
     this.openSections.has(id) ? this.openSections.delete(id) : this.openSections.add(id);
   }
-  isOpen(id: string)   { return this.openSections.has(id); }
+  isOpen(id: string)     { return this.openSections.has(id); }
+
+  goChangePassword() {
+    this.router.navigate(['/app/acceso-registro/cambiar-contrasena']);
+  }
 
   logout() {
     this.auth.logout();

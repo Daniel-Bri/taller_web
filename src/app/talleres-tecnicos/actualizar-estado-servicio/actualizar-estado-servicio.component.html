@@ -31,6 +31,11 @@
           <div>
             <span class="servicio-card-title">Asignación #{{ a.id }}</span>
             <span class="servicio-card-sub">Incidente #{{ a.incidente_id }}</span>
+            @if (a.es_sos) {
+              <span class="badge badge-danger" style="margin-left:6px;font-weight:900;letter-spacing:0.5px;font-size:0.7rem">
+                🆘 SOS — emergencia urgente
+              </span>
+            }
           </div>
           <span class="badge" [ngClass]="estadoInfo[a.estado]?.badgeClass ?? 'badge-muted'">
             <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;margin-right:3px">
@@ -67,6 +72,12 @@
         <!-- Acciones -->
         @if (opcionesTransicion(a.estado).length > 0) {
           <div class="servicio-actions">
+            @if (a.estado === 'en_camino') {
+              <div class="info-note" style="margin-bottom:0.75rem;font-size:0.78rem;color:#6B7280">
+                <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle">info</span>
+                "En sitio" lo confirma el cliente al recibir al técnico. Úsalo solo si el cliente no tiene señal (ej. SOS).
+              </div>
+            }
             <div class="field" style="margin-bottom:0.75rem">
               <label>Siguiente estado</label>
               <select [(ngModel)]="estadoSel[a.id]">

@@ -18,6 +18,8 @@ const ESTADO_INFO: Record<string, EstadoInfo> = {
   cancelado:     { label: 'Cancelado',      badgeClass: 'badge-danger',   icon: 'cancel'          },
 };
 
+// en_sitio es confirmado por el cliente (CU31) en el caso normal.
+// El taller puede usarlo como fallback si el cliente no tiene señal (ej. SOS).
 const TRANSICIONES: Record<string, string[]> = {
   aceptado:      ['en_camino', 'cancelado'],
   en_camino:     ['en_sitio',  'cancelado'],

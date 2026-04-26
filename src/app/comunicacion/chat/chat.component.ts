@@ -9,6 +9,7 @@ import { interval, Subscription, switchMap, catchError, of } from 'rxjs';
 import { AuthService } from '../../acceso-registro/auth.service';
 import { TecnicoService, AsignacionResponse } from '../../talleres-tecnicos/tecnico.service';
 import { ComunicacionService, MensajeResponse } from '../comunicacion.service';
+import { SolicitudService } from '../../solicitudes/solicitud.service';
 
 @Component({
   selector: 'app-chat',
@@ -38,6 +39,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     private auth: AuthService,
     private tecnicoSvc: TecnicoService,
     private comunicacionSvc: ComunicacionService,
+    private solicitudSvc: SolicitudService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -61,7 +63,13 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   cargarAsignaciones(): void {
     this.cargandoAsignaciones = true;
     this.errorAsignaciones = '';
-    this.tecnicoSvc.listarActivas().subscribe({
+
+    const role = this.auth.getUser()?.role;
+    const source$ = role === 'cliente'
+      ? this.solicitudSvc.misAsignacionesActivas()
+      : this.tecnicoSvc.listarActivas();
+
+    source$.subscribe({
       next: (list) => {
         this.asignaciones = list;
         this.cargandoAsignaciones = false;

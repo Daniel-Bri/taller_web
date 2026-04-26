@@ -1,9 +1,9 @@
-<!-- CU13 - Ver Solicitudes Disponibles -->
+<!-- CU13 - Ver Solicitudes Disponibles + §4.6 Motor IA -->
 
 <div class="page-header">
   <div>
     <h1 class="page-title">Solicitudes disponibles</h1>
-    <p class="page-sub">CU13 · Incidentes cercanos sin taller asignado (ubicación y evidencias)</p>
+    <p class="page-sub">CU13 · Incidentes ordenados por relevancia IA (distancia + rating)</p>
   </div>
   <button class="btn-secondary" type="button" (click)="cargar()" [disabled]="loading">
     <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
@@ -16,7 +16,8 @@
 }
 
 @if (bannerMsg) {
-  <div [class]="bannerMsg.tipo === 'ok' ? 'alert-success' : 'alert-danger'" style="display:flex;justify-content:space-between;align-items:center;gap:1rem">
+  <div [class]="bannerMsg.tipo === 'ok' ? 'alert-success' : 'alert-danger'"
+       style="display:flex;justify-content:space-between;align-items:center;gap:1rem">
     <span>{{ bannerMsg.texto }}</span>
     <button type="button" class="btn-secondary" (click)="cerrarBanner()">Cerrar</button>
   </div>
@@ -24,19 +25,21 @@
 
 @if (loading && items.length === 0) {
   <div class="loading-row">
-    <span class="spinner-dark"></span> Cargando solicitudes...
+    <span class="spinner-dark"></span> Cargando solicitudes…
   </div>
 } @else if (!loading && items.length === 0) {
   <div class="empty-state">
     <span class="material-symbols-outlined" style="font-size:40px;color:#9CA3AF">assignment_late</span>
     <p>No hay solicitudes disponibles en este momento.</p>
     <p style="font-size:0.85rem;color:#6B7280;margin-top:0.5rem">
-      Aparecerán aquí los incidentes en estado pendiente con GPS y sin asignación a taller.
+      Aparecerán aquí los incidentes pendientes con GPS y sin taller asignado,
+      ordenados por proximidad a tu taller.
     </p>
   </div>
 } @else {
 
   <div class="cu13-layout">
+    <!-- ── Lista ──────────────────────────────────────────────────── -->
     <div class="cu13-list">
       @for (s of items; track s.incidente_id) {
         <button
@@ -47,23 +50,61 @@
         >
           <div class="cu13-card-top">
             <span class="cu13-id">#{{ s.incidente_id }}</span>
-            <span class="badge" [ngClass]="prioridadClass(s.prioridad)">{{ prioridadLabel(s.prioridad) }}</span>
+            @if (s.es_sos) {
+              <span class="badge badge-danger" style="font-weight:900;letter-spacing:1px">🆘 SOS</span>
+            } @else {
+              <span class="badge" [ngClass]="prioridadClass(s.prioridad)">{{ prioridadLabel(s.prioridad) }}</span>
+            }
+            <!-- §4.6 Score IA -->
+            @if (s.score_ia > 0) {
+              <span class="badge" [ngClass]="scoreClass(s.score_ia)" style="margin-left:auto">
+                {{ scoreLabel(s.score_ia) }}
+              </span>
+            }
           </div>
-          <div class="cu13-tipo">{{ s.tipo_problema }}</div>
+
+          <!-- §4.5 Tipo de problema clasificado por IA -->
+          @if (s.tipo_problema) {
+            <div class="cu13-tipo">
+              <span class="material-symbols-outlined" style="font-size:13px;vertical-align:middle;color:#6366F1">smart_toy</span>
+              {{ s.tipo_problema }}
+            </div>
+          } @else {
+            <div class="cu13-tipo" style="color:#9CA3AF">Sin clasificar</div>
+          }
+
           <div class="cu13-meta">
             <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;color:#6B7280">location_on</span>
-            {{ s.latitud | number:'1.4-4' }}, {{ s.longitud | number:'1.4-4' }}
+            @if (s.latitud !== null && s.longitud !== null) {
+              {{ s.latitud | number:'1.4-4' }}, {{ s.longitud | number:'1.4-4' }}
+            } @else {
+              <span style="color:#EF4444;font-weight:600">Ubicación no disponible</span>
+            }
+            <!-- §4.6 Distancia -->
+            @if (s.distancia_km !== null) {
+              <span style="margin-left:8px;color:#6366F1;font-weight:600">
+                {{ s.distancia_km | number:'1.1-1' }} km
+              </span>
+            }
           </div>
+
           @if (s.fotos_urls.length > 0) {
             <div class="cu13-evid">
               <span class="material-symbols-outlined" style="font-size:14px">image</span>
               {{ s.fotos_urls.length }} foto(s)
             </div>
           }
+          @if (s.tiene_audio) {
+            <div class="cu13-evid">
+              <span class="material-symbols-outlined" style="font-size:14px">mic</span>
+              Audio adjunto
+            </div>
+          }
         </button>
       }
     </div>
 
+    <!-- ── Detalle ─────────────────────────────────────────────────── -->
     <div class="cu13-detail">
       @if (seleccion) {
         <div class="form-card" style="margin:0">
@@ -75,20 +116,52 @@
             <button type="button" class="btn-secondary" (click)="cerrarDetalle()">Cerrar</button>
           </div>
 
+          <!-- Stats row -->
           <div class="stats-row" style="margin-bottom:1rem">
             <div class="stat-box">
-              <span class="stat-val" style="font-size:0.95rem">Prioridad</span>
-              <span class="stat-lbl"><span class="badge" [ngClass]="prioridadClass(seleccion.prioridad)">{{ prioridadLabel(seleccion.prioridad) }}</span></span>
+              <span class="stat-val" style="font-size:0.88rem">Prioridad</span>
+              <span class="stat-lbl">
+                <span class="badge" [ngClass]="prioridadClass(seleccion.prioridad)">{{ prioridadLabel(seleccion.prioridad) }}</span>
+              </span>
             </div>
-            <div class="stat-box">
-              <span class="stat-val" style="font-size:0.95rem">Estado</span>
-              <span class="stat-lbl">{{ seleccion.estado }}</span>
-            </div>
+            @if (seleccion.distancia_km !== null) {
+              <div class="stat-box">
+                <span class="stat-val" style="font-size:0.88rem">Distancia</span>
+                <span class="stat-lbl" style="color:#6366F1;font-weight:700">
+                  {{ seleccion.distancia_km | number:'1.1-1' }} km
+                </span>
+              </div>
+            }
+            @if (seleccion.score_ia > 0) {
+              <div class="stat-box">
+                <span class="stat-val" style="font-size:0.88rem">Relevancia IA</span>
+                <span class="stat-lbl">
+                  <span class="badge" [ngClass]="scoreClass(seleccion.score_ia)">
+                    {{ (seleccion.score_ia * 100) | number:'1.0-0' }}%
+                  </span>
+                </span>
+              </div>
+            }
           </div>
+
+          <!-- §4.5 Tipo de problema IA -->
+          @if (seleccion.tipo_problema) {
+            <div style="background:#EEF2FF;border-radius:8px;padding:10px 14px;margin-bottom:1rem;display:flex;align-items:center;gap:8px">
+              <span class="material-symbols-outlined" style="font-size:18px;color:#6366F1">smart_toy</span>
+              <div>
+                <div style="font-size:0.78rem;color:#6366F1;font-weight:600">Clasificación IA</div>
+                <div style="font-size:0.9rem;font-weight:700;color:#1E1B4B">{{ seleccion.tipo_problema }}</div>
+              </div>
+            </div>
+          }
 
           <h3 style="font-size:0.88rem;font-weight:700;color:var(--text);margin:0 0 0.5rem">Ubicación</h3>
           <p style="margin:0 0 1rem;font-size:0.9rem;color:#374151">
-            {{ seleccion.latitud | number:'1.5-5' }}, {{ seleccion.longitud | number:'1.5-5' }}
+            @if (seleccion.latitud !== null && seleccion.longitud !== null) {
+              {{ seleccion.latitud | number:'1.5-5' }}, {{ seleccion.longitud | number:'1.5-5' }}
+            } @else {
+              <span style="color:#EF4444;font-style:italic">Sin GPS — contactar por chat.</span>
+            }
           </p>
 
           <h3 style="font-size:0.88rem;font-weight:700;color:var(--text);margin:0 0 0.5rem">Descripción</h3>
@@ -97,30 +170,36 @@
           </p>
 
           <h3 style="font-size:0.88rem;font-weight:700;color:var(--text);margin:0 0 0.5rem">Evidencias</h3>
-          @if (seleccion.fotos_urls.length === 0) {
-            <p style="font-size:0.88rem;color:#6B7280">Sin imágenes adjuntas.</p>
+          @if (seleccion.fotos_urls.length === 0 && !seleccion.tiene_audio) {
+            <p style="font-size:0.88rem;color:#6B7280">Sin evidencias adjuntas.</p>
           } @else {
-            <div class="cu13-gallery">
-              @for (url of seleccion.fotos_urls; track url) {
-                <a [href]="fotoFullUrl(url)" target="_blank" rel="noopener">
-                  <img [src]="fotoFullUrl(url)" alt="Evidencia" />
-                </a>
-              }
-            </div>
+            @if (seleccion.fotos_urls.length > 0) {
+              <div class="cu13-gallery">
+                @for (url of seleccion.fotos_urls; track url) {
+                  <a [href]="fotoFullUrl(url)" target="_blank" rel="noopener">
+                    <img [src]="fotoFullUrl(url)" alt="Evidencia" />
+                  </a>
+                }
+              </div>
+            }
+            @if (seleccion.tiene_audio) {
+              <p style="font-size:0.85rem;color:#6366F1;margin-top:0.5rem">
+                <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle">mic</span>
+                Audio adjunto (ver desde la app móvil)
+              </p>
+            }
           }
-          <p style="margin-top:1rem;font-size:0.8rem;color:#9CA3AF">
-            Audio: {{ seleccion.tiene_audio ? 'Sí' : 'No' }} · Texto: {{ seleccion.descripcion ? 'Sí' : 'No' }}
-          </p>
 
           <hr style="border:0;border-top:1px solid #E5E7EB;margin:1.25rem 0" />
 
           <h3 style="font-size:0.88rem;font-weight:700;color:var(--text);margin:0 0 0.5rem">Aceptar solicitud (CU15)</h3>
           <p style="font-size:0.82rem;color:#6B7280;margin:0 0 0.75rem">
-            Se creará una asignación para tu taller y el incidente quedará en proceso.
+            Se creará una asignación y el incidente quedará en proceso.
           </p>
           <label class="cu13-eta-label">
             <span>ETA opcional (minutos)</span>
-            <input type="number" class="cu13-eta-input" [(ngModel)]="etaMinutos" min="1" max="1440" placeholder="Ej. 45" />
+            <input type="number" class="cu13-eta-input" [(ngModel)]="etaMinutos"
+                   min="1" max="1440" placeholder="Ej. 45" />
           </label>
           <button
             type="button"

@@ -29,14 +29,24 @@
         <span class="nav-text">Dashboard</span>
       </a>
 
-      <!-- Secciones por paquete -->
+      <!-- 7 Módulos siempre visibles -->
       @for (section of navSections; track section.id) {
         <div class="nav-section">
-          <button class="section-btn" (click)="toggleSection(section.id)">
+
+          <!-- Cabecera del módulo -->
+          <button class="section-btn"
+                  [class.section-locked]="!sectionAccessible(section)"
+                  (click)="toggleSection(section.id)">
             <span class="nav-icon">
-              <span class="material-symbols-outlined">{{ section.icon }}</span>
+              <span class="material-symbols-outlined"
+                    [style.color]="!sectionAccessible(section) ? '#9CA3AF' : 'inherit'">
+                {{ section.icon }}
+              </span>
             </span>
             <span class="nav-text">{{ section.label }}</span>
+            @if (!sectionAccessible(section)) {
+              <span class="material-symbols-outlined lock-section-icon">lock</span>
+            }
             <span class="chevron" [class.open]="isOpen(section.id)">
               <span class="material-symbols-outlined" style="font-size:16px">expand_more</span>
             </span>
@@ -45,14 +55,24 @@
           @if (isOpen(section.id)) {
             <div class="section-children">
               @for (item of section.items; track item.route) {
-                <a class="child-link"
-                   [routerLink]="item.route"
-                   routerLinkActive="active-child">
-                  {{ item.label }}
-                </a>
+                @if (itemAccessible(item)) {
+                  <!-- Item accesible -->
+                  <a class="child-link"
+                     [routerLink]="item.route"
+                     routerLinkActive="active-child">
+                    {{ item.label }}
+                  </a>
+                } @else {
+                  <!-- Item bloqueado -->
+                  <a class="child-link locked-item" (click)="navigateLocked()">
+                    <span class="material-symbols-outlined lock-item-icon">lock</span>
+                    {{ item.label }}
+                  </a>
+                }
               }
             </div>
           }
+
         </div>
       }
 
@@ -64,9 +84,12 @@
         <div class="user-avatar">{{ userInitial }}</div>
         <div class="user-info">
           <span class="user-name">{{ userName }}</span>
-          <span class="user-role">{{ userRole }}</span>
+          <span class="user-role">{{ userRoleLabel }}</span>
         </div>
       </div>
+      <button class="logout-btn" (click)="goChangePassword()" title="Cambiar contraseña">
+        <span class="material-symbols-outlined" style="font-size:18px">key</span>
+      </button>
       <button class="logout-btn" (click)="logout()" title="Cerrar sesión">
         <span class="material-symbols-outlined" style="font-size:18px">logout</span>
       </button>

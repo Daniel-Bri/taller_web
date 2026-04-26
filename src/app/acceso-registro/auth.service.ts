@@ -52,6 +52,25 @@ export class AuthService {
       .pipe(tap(res => this.saveSession(res)));
   }
 
+  changePassword(currentPassword: string, newPassword: string): Observable<{msg: string}> {
+    return this.http.post<{msg: string}>(`${this.API}/change-password`, {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
+  }
+
+  requestReset(email: string): Observable<{msg: string}> {
+    return this.http.post<{msg: string}>(`${this.API}/request-reset`, { email });
+  }
+
+  resetPassword(email: string, code: string, newPassword: string): Observable<{msg: string}> {
+    return this.http.post<{msg: string}>(`${this.API}/reset-password`, {
+      email,
+      code,
+      new_password: newPassword,
+    });
+  }
+
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_KEY);

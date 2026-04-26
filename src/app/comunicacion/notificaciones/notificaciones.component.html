@@ -1,2 +1,73 @@
-<!-- CU22 - Recibir Notificaciones -->
-<p>CU22 - Recibir Notificaciones</p>
+<!-- CU19 - Recibir Notificaciones -->
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Notificaciones</h1>
+    <p class="page-sub">CU19 · Estado de tus servicios activos · se actualiza cada 30 s</p>
+  </div>
+  <button class="btn-secondary" (click)="cargar()" [disabled]="loading">
+    <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
+    Actualizar
+  </button>
+</div>
+
+@if (errorMsg) {
+  <div class="alert-danger">{{ errorMsg }}</div>
+}
+
+@if (loading) {
+  <div class="loading-row">
+    <span class="spinner-dark"></span> Cargando notificaciones...
+  </div>
+} @else if (asignaciones.length === 0) {
+  <div class="empty-state">
+    <span class="material-symbols-outlined" style="font-size:48px;color:#9CA3AF">notifications_none</span>
+    <p>No hay servicios activos en este momento.</p>
+    <p style="font-size:0.85rem;color:#6B7280;margin-top:0.5rem">
+      Las actualizaciones de estado de tus servicios aparecerán aquí.
+    </p>
+  </div>
+} @else {
+  <div style="display:flex;flex-direction:column;gap:0.85rem">
+    @for (a of asignaciones; track a.id) {
+      <div style="background:#fff;border:1.5px solid #E5E7EB;border-radius:12px;padding:1.1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem">
+
+        <!-- Ícono de estado -->
+        <div style="flex-shrink:0;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#F3F4F6">
+          <span class="material-symbols-outlined" style="font-size:20px;color:#6B7280">
+            {{ iconEstado(a.estado) }}
+          </span>
+        </div>
+
+        <!-- Contenido -->
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.35rem;flex-wrap:wrap">
+            <span style="font-weight:700;font-size:0.95rem;color:var(--text)">
+              Incidente #{{ a.incidente_id }}
+            </span>
+            <span class="badge" [ngClass]="estadoBadge(a.estado)">{{ estadoLabel(a.estado) }}</span>
+          </div>
+          <p style="margin:0;font-size:0.85rem;color:#6B7280">
+            Asignación #{{ a.id }}
+            @if (a.tecnico_id) {
+              · Técnico #{{ a.tecnico_id }}
+            }
+            @if (a.eta) {
+              · ETA {{ a.eta }} min
+            }
+          </p>
+          @if (a.observacion) {
+            <p style="margin:0.4rem 0 0;font-size:0.82rem;color:#374151;background:#F9FAFB;border-radius:6px;padding:0.5rem 0.75rem">
+              {{ a.observacion }}
+            </p>
+          }
+        </div>
+
+        <!-- Fecha -->
+        <div style="flex-shrink:0;font-size:0.78rem;color:#9CA3AF;text-align:right">
+          {{ a.created_at | date:'dd/MM HH:mm' }}
+        </div>
+      </div>
+    }
+  </div>
+}

@@ -1,143 +1,125 @@
 import { Component } from '@angular/core';
-import { AuthService } from '../acceso-registro/auth.service';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../acceso-registro/auth.service';
+
+interface QuickLink { icon: string; label: string; route: string; bg: string; color: string; }
 
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
-  imports: [RouterLink],
+  imports: [CommonModule, RouterLink],
   template: `
-    <div class="page-header">
-      <h1 class="page-title">Dashboard</h1>
-      <p class="page-sub">Bienvenido, <strong>{{ userName }}</strong></p>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#EFF6FF;color:var(--primary)">
-          <span class="material-symbols-outlined">crisis_alert</span>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">0</span>
-          <span class="stat-label">Incidentes activos</span>
-        </div>
+    <!-- Bienvenida -->
+    <div class="welcome-row">
+      <div>
+        <h1 class="page-title">Bienvenido, {{ userName }}</h1>
+        <p class="page-sub">{{ roleLabel }} · RutaSegura</p>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#ECFDF5;color:var(--success)">
-          <span class="material-symbols-outlined">verified</span>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">0</span>
-          <span class="stat-label">Talleres aprobados</span>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#FEF2F2;color:var(--danger)">
-          <span class="material-symbols-outlined">pending_actions</span>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">0</span>
-          <span class="stat-label">Solicitudes pendientes</span>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:#F5F3FF;color:#7C3AED">
-          <span class="material-symbols-outlined">payments</span>
-        </div>
-        <div class="stat-info">
-          <span class="stat-value">$0</span>
-          <span class="stat-label">Pagos del mes</span>
-        </div>
-      </div>
+      <span class="role-badge">{{ roleLabel }}</span>
     </div>
 
     <!-- Accesos rápidos -->
-    <h2 class="section-title">Accesos rápidos</h2>
+    <p class="section-label">Accesos rápidos</p>
     <div class="quick-grid">
-      <a routerLink="/app/acceso-registro/gestionar-vehiculos" class="quick-card">
-        <div class="quick-icon" style="background:#EFF6FF;color:var(--primary)">
-          <span class="material-symbols-outlined">directions_car</span>
-        </div>
-        <span class="quick-label">Mis Vehículos</span>
-      </a>
-      <a routerLink="/app/acceso-registro/registrar-taller" class="quick-card">
-        <div class="quick-icon" style="background:#ECFDF5;color:var(--success)">
-          <span class="material-symbols-outlined">store</span>
-        </div>
-        <span class="quick-label">Registrar Taller</span>
-      </a>
-      <a routerLink="/app/solicitudes/ver-solicitudes-disponibles" class="quick-card">
-        <div class="quick-icon" style="background:#EFF6FF;color:var(--secondary)">
-          <span class="material-symbols-outlined">assignment</span>
-        </div>
-        <span class="quick-label">Ver Solicitudes</span>
-      </a>
-      <a routerLink="/app/reportes/historial-servicios" class="quick-card">
-        <div class="quick-icon" style="background:#F5F3FF;color:#7C3AED">
-          <span class="material-symbols-outlined">history</span>
-        </div>
-        <span class="quick-label">Historial</span>
-      </a>
+      @for (link of quickLinks; track link.route) {
+        <a [routerLink]="link.route" class="quick-card">
+          <div class="quick-icon" [style.background]="link.bg" [style.color]="link.color">
+            <span class="material-symbols-outlined">{{ link.icon }}</span>
+          </div>
+          <span class="quick-label">{{ link.label }}</span>
+        </a>
+      }
     </div>
   `,
   styles: [`
-    .page-header { margin-bottom: 1.75rem; }
-    .page-title  { font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 0.25rem; }
-    .page-sub    { color: #6B7280; font-size: 0.9rem; }
+    .welcome-row {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .page-title { font-size: 1.4rem; font-weight: 700; color: var(--text); margin: 0 0 0.25rem; }
+    .page-sub   { color: #6B7280; font-size: 0.88rem; margin: 0; }
+    .role-badge {
+      background: #EFF6FF; color: var(--primary);
+      font-size: 0.75rem; font-weight: 700;
+      padding: 0.3rem 0.75rem; border-radius: 20px;
+      white-space: nowrap; flex-shrink: 0;
+    }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
+    .section-label {
+      font-size: 0.78rem; font-weight: 700; color: #6B7280;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin: 0 0 1rem;
     }
-    .stat-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 1.25rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      box-shadow: 0 1px 8px rgba(0,0,0,0.05);
-    }
-    .stat-icon {
-      width: 46px; height: 46px;
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--text); display: block; line-height: 1.2; }
-    .stat-label { font-size: 0.78rem; color: #6B7280; margin-top: 2px; }
-
-    .section-title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 1rem; letter-spacing: 0.02em; text-transform: uppercase; }
 
     .quick-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 1rem;
     }
     .quick-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 1.5rem 1rem;
-      display: flex; flex-direction: column;
-      align-items: center; gap: 0.75rem;
+      background: #fff; border-radius: 12px;
+      padding: 1.4rem 1rem;
+      display: flex; flex-direction: column; align-items: center; gap: 0.7rem;
       text-decoration: none;
-      box-shadow: 0 1px 8px rgba(0,0,0,0.05);
       border: 1px solid #F3F4F6;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.04);
       transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
     }
-    .quick-card:hover { box-shadow: 0 4px 16px rgba(37,99,235,0.1); transform: translateY(-2px); border-color: #DBEAFE; }
+    .quick-card:hover {
+      box-shadow: 0 4px 16px rgba(37,99,235,0.1);
+      transform: translateY(-2px); border-color: #DBEAFE;
+    }
     .quick-icon {
-      width: 48px; height: 48px;
-      border-radius: 12px;
+      width: 48px; height: 48px; border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
     }
-    .quick-label { font-size: 0.83rem; font-weight: 600; color: var(--text); text-align: center; }
+    .quick-label { font-size: 0.82rem; font-weight: 600; color: var(--text); text-align: center; }
   `],
 })
 export class DashboardHomeComponent {
   constructor(private auth: AuthService) {}
-  get userName() { return this.auth.getUser()?.full_name || this.auth.getUser()?.username || 'Usuario'; }
+
+  get user()     { return this.auth.getUser(); }
+  get userName() { return this.user?.full_name || this.user?.username || 'Usuario'; }
+  get role()     { return this.user?.role ?? ''; }
+
+  get roleLabel(): string {
+    const map: Record<string, string> = {
+      cliente: 'Cliente', taller: 'Taller', tecnico: 'Técnico', admin: 'Administrador',
+    };
+    return map[this.role] ?? this.role;
+  }
+
+  get quickLinks(): QuickLink[] {
+    const all: Record<string, QuickLink[]> = {
+      cliente: [
+        { icon: 'warning_amber',    label: 'Reportar Emergencia', route: '/app/emergencias/adjuntar-fotos',                   bg: '#FEF2F2', color: '#EF4444' },
+        { icon: 'directions_car',   label: 'Mis Vehículos',       route: '/app/acceso-registro/gestionar-vehiculos',           bg: '#EFF6FF', color: '#2563EB' },
+        { icon: 'track_changes',    label: 'Mis Solicitudes',      route: '/app/solicitudes/ver-estado-solicitud',              bg: '#EFF6FF', color: '#2563EB' },
+        { icon: 'chat',             label: 'Chat',                 route: '/app/comunicacion/chat',                            bg: '#ECFDF5', color: '#16A34A' },
+      ],
+      taller: [
+        { icon: 'assignment',       label: 'Ver Solicitudes',      route: '/app/solicitudes/ver-solicitudes-disponibles',       bg: '#EFF6FF', color: '#2563EB' },
+        { icon: 'build',            label: 'Estado Servicio',      route: '/app/talleres-tecnicos/actualizar-estado-servicio',  bg: '#FEF2F2', color: '#EF4444' },
+        { icon: 'people',           label: 'Técnicos',             route: '/app/talleres-tecnicos/gestionar-tecnicos',          bg: '#ECFDF5', color: '#16A34A' },
+        { icon: 'receipt_long',     label: 'Cotizaciones',         route: '/app/cotizacion-pagos/generar-cotizacion',           bg: '#F5F3FF', color: '#7C3AED' },
+        { icon: 'chat',             label: 'Chat',                 route: '/app/comunicacion/chat',                            bg: '#ECFDF5', color: '#16A34A' },
+        { icon: 'toggle_on',        label: 'Disponibilidad',       route: '/app/talleres-tecnicos/gestionar-disponibilidad',    bg: '#FFF7ED', color: '#D97706' },
+      ],
+      tecnico: [
+        { icon: 'build',            label: 'Estado Servicio',      route: '/app/talleres-tecnicos/actualizar-estado-servicio',  bg: '#EFF6FF', color: '#2563EB' },
+        { icon: 'chat',             label: 'Chat',                 route: '/app/comunicacion/chat',                            bg: '#ECFDF5', color: '#16A34A' },
+        { icon: 'task_alt',         label: 'Registrar Servicio',   route: '/app/talleres-tecnicos/registrar-servicio-realizado',bg: '#FEF2F2', color: '#EF4444' },
+        { icon: 'notifications',    label: 'Notificaciones',       route: '/app/comunicacion/notificaciones',                  bg: '#F5F3FF', color: '#7C3AED' },
+      ],
+      admin: [
+        { icon: 'verified',         label: 'Aprobar Talleres',     route: '/app/acceso-registro/aprobar-talleres',              bg: '#ECFDF5', color: '#16A34A' },
+        { icon: 'manage_accounts',  label: 'Gestionar Usuarios',   route: '/app/acceso-registro/gestionar-usuarios',            bg: '#EFF6FF', color: '#2563EB' },
+        { icon: 'policy',           label: 'Auditoría',            route: '/app/reportes/auditoria',                           bg: '#FEF2F2', color: '#EF4444' },
+        { icon: 'bar_chart',        label: 'Comisiones',           route: '/app/cotizacion-pagos/ver-comisiones',               bg: '#F5F3FF', color: '#7C3AED' },
+      ],
+    };
+    return all[this.role] ?? [];
+  }
 }

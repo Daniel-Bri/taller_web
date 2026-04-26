@@ -1,2 +1,102 @@
-<!-- CU07 - Adjuntar Fotos -->
-<p>CU07 - Adjuntar Fotos</p>
+<!-- CU07 – Adjuntar fotos con análisis IA (§4.5) -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Adjuntar fotos</h1>
+    <p class="page-sub">CU07 · Sube fotos del incidente — el sistema las analiza con IA</p>
+  </div>
+  <button class="btn-secondary" type="button" (click)="volver()">
+    <span class="material-symbols-outlined" style="font-size:16px;margin-right:4px">arrow_back</span>
+    Volver
+  </button>
+</div>
+
+@if (!incidenteId) {
+  <div class="alert-danger">
+    Falta el ID del incidente. Navega a esta página desde "Reportar Emergencia".
+  </div>
+} @else {
+  <p style="font-size:0.88rem;color:#6B7280;margin-bottom:1.25rem">
+    Emergencia <strong>#{{ incidenteId }}</strong> · Las fotos son analizadas automáticamente para detectar tipo de daño y severidad.
+  </p>
+
+  @if (errorMsg) {
+    <div class="alert-danger">{{ errorMsg }}</div>
+  }
+  @if (successMsg) {
+    <div class="success-banner">{{ successMsg }}</div>
+  }
+
+  <div class="form-card">
+
+    <!-- Selector de archivo -->
+    <label style="display:block;margin-bottom:1rem">
+      <span style="font-size:0.88rem;font-weight:600;color:var(--text)">Seleccionar foto (JPG / PNG / WEBP)</span>
+      <input type="file" accept="image/*" style="display:block;margin-top:0.5rem"
+             (change)="onFileSelected($event)" [disabled]="uploading" />
+    </label>
+
+    <!-- Vista previa -->
+    @if (previewUrl) {
+      <div style="margin-bottom:1rem">
+        <p style="font-size:0.82rem;font-weight:600;color:var(--text);margin-bottom:0.5rem">Vista previa</p>
+        <img [src]="previewUrl" alt="Vista previa"
+             style="max-width:100%;max-height:260px;border-radius:10px;object-fit:contain;border:1px solid #E5E7EB" />
+        <div class="action-btns" style="margin-top:0.75rem">
+          <button type="button" class="btn-secondary" (click)="descartar()" [disabled]="uploading">
+            Descartar
+          </button>
+          <button type="button" class="btn-primary" (click)="confirmarSubida()" [disabled]="uploading">
+            @if (uploading) {
+              <span class="spinner-dark" style="margin-right:6px"></span> Analizando…
+            } @else {
+              <span class="material-symbols-outlined" style="font-size:16px;margin-right:4px">upload</span>
+              Confirmar y subir
+            }
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Resultado análisis IA del último upload -->
+    @if (analisisIA) {
+      <div style="background:#EEF2FF;border-radius:10px;padding:14px 16px;margin-top:0.5rem">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem">
+          <span class="material-symbols-outlined" style="font-size:20px;color:#6366F1">smart_toy</span>
+          <strong style="font-size:0.9rem;color:#1E1B4B">Análisis IA de la imagen</strong>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem">
+          <div><span style="color:#6B7280">Tipo de daño:</span> <strong>{{ analisisIA.etiqueta_es }}</strong></div>
+          <div><span style="color:#6B7280">Severidad:</span>
+            <strong [style.color]="analisisIA.severidad === 'grave' ? '#DC2626' : analisisIA.severidad === 'moderado' ? '#D97706' : '#16A34A'">
+              {{ analisisIA.severidad_es }}
+            </strong>
+          </div>
+          <div style="grid-column:1/-1"><span style="color:#6B7280">Confianza:</span> {{ confianzaLabel(analisisIA.confianza) }}</div>
+          <div style="grid-column:1/-1"><span style="color:#6B7280">Descripción:</span> {{ analisisIA.descripcion_auto }}</div>
+        </div>
+        <p style="font-size:0.75rem;color:#9CA3AF;margin:0.5rem 0 0">⚠ {{ analisisIA.advertencia }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- Fotos ya subidas -->
+  @if (fotosSubidas.length > 0) {
+    <div class="form-card" style="margin-top:1.25rem">
+      <h3 style="font-size:0.92rem;font-weight:700;margin:0 0 1rem">Fotos registradas ({{ fotosSubidas.length }})</h3>
+      @for (item of fotosSubidas; track item.url) {
+        <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #E5E7EB">
+          <a [href]="fullUrl(item.url)" target="_blank" rel="noopener">
+            <img [src]="fullUrl(item.url)" alt="Evidencia"
+                 style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #E5E7EB" />
+          </a>
+          @if (item.analisis) {
+            <div style="font-size:0.82rem">
+              <div><strong>{{ item.analisis.etiqueta_es }}</strong> · {{ item.analisis.severidad_es }}</div>
+              <div style="color:#6B7280">{{ item.analisis.descripcion_auto }}</div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+}

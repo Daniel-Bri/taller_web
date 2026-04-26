@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SolicitudService, SolicitudDisponible } from '../solicitud.service';
@@ -22,7 +22,7 @@ export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
   bannerMsg: { tipo: 'ok' | 'error'; texto: string } | null = null;
   private _poll?: ReturnType<typeof setInterval>;
 
-  constructor(private solicitudSvc: SolicitudService) {}
+  constructor(private solicitudSvc: SolicitudService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.cargar();
@@ -37,6 +37,7 @@ export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
     if (!silencioso) {
       this.loading = true;
       this.errorMsg = '';
+      this.cdr.detectChanges();
     }
     this.solicitudSvc.listarDisponibles().subscribe({
       next: (data) => {
@@ -45,12 +46,14 @@ export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
           this.seleccion = data.find((d) => d.incidente_id === this.seleccion!.incidente_id) ?? null;
         }
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (e) => {
         this.loading = false;
         this.errorMsg =
           e?.error?.detail ??
           (typeof e?.message === 'string' ? e.message : 'No se pudieron cargar las solicitudes.');
+        this.cdr.detectChanges();
       },
     });
   }
@@ -87,13 +90,14 @@ export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
     this.solicitudSvc.aceptar(this.seleccion.incidente_id, eta).subscribe({
       next: (a) => {
         this.aceptando = false;
-    this.bannerMsg = {
+        this.bannerMsg = {
           tipo: 'ok',
           texto: `Solicitud aceptada. Asignación #${a.id}. El incidente pasó a en proceso.`,
         };
         this.cargar(true);
         this.seleccion = null;
         this.etaMinutos = null;
+        this.cdr.detectChanges();
       },
       error: (e) => {
         this.aceptando = false;
@@ -102,6 +106,7 @@ export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
           tipo: 'error',
           texto: typeof d === 'string' ? d : 'No se pudo aceptar la solicitud.',
         };
+        this.cdr.detectChanges();
       },
     });
   }
@@ -109,5 +114,18 @@ export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
   fotoFullUrl(path: string): string {
     if (path.startsWith('http')) return path;
     return `${environment.apiUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+  }
+
+  scoreLabel(score: number): string {
+    if (score >= 0.7) return 'Muy cercano';
+    if (score >= 0.4) return 'Cercano';
+    if (score >  0)   return 'Lejano';
+    return '';
+  }
+
+  scoreClass(score: number): string {
+    if (score >= 0.7) return 'badge-success';
+    if (score >= 0.4) return 'badge-warning';
+    return 'badge-muted';
   }
 }

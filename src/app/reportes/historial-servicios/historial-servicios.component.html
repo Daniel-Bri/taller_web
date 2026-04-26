@@ -1,2 +1,72 @@
 <!-- CU29 - Ver Historial de Servicios -->
-<p>CU29 - Ver Historial de Servicios</p>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Historial de Servicios</h1>
+    <p class="page-sub">CU29 · Registro de todos los servicios completados</p>
+  </div>
+  <button class="btn-secondary" (click)="cargar()" [disabled]="loading">
+    <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
+    Actualizar
+  </button>
+</div>
+
+@if (errorMsg) {
+  <div class="alert-danger">{{ errorMsg }}</div>
+}
+
+@if (loading) {
+  <div class="loading-row"><span class="spinner-dark"></span> Cargando historial...</div>
+} @else if (historial.length === 0) {
+  <div class="empty-state">
+    <span class="material-symbols-outlined" style="font-size:40px;color:#9CA3AF">history</span>
+    <p>Aún no hay servicios completados registrados.</p>
+  </div>
+} @else {
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Incidente</th>
+          <th>Tipo</th>
+          <th>Trabajo realizado</th>
+          <th>Repuestos</th>
+          <th>Monto</th>
+          <th>Fecha cierre</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of historial; track item.id) {
+          <tr>
+            <td class="td-id">{{ item.id }}</td>
+            <td>
+              <strong>#{{ item.incidente_id ?? item.asignacion_id }}</strong>
+              @if (item.descripcion) {
+                <p style="margin:2px 0 0;font-size:0.78rem;color:#6B7280;max-width:180px;white-space:normal">
+                  {{ item.descripcion }}
+                </p>
+              }
+            </td>
+            <td>
+              @if (item.tipo_incidente) {
+                <span class="badge badge-purple" style="font-size:0.75rem">{{ item.tipo_incidente }}</span>
+              } @else {
+                <span class="text-muted">—</span>
+              }
+            </td>
+            <td style="max-width:220px;white-space:normal;font-size:0.85rem">{{ item.descripcion_trabajo }}</td>
+            <td style="font-size:0.82rem;color:#6B7280">{{ parsearRepuestos(item.repuestos) }}</td>
+            <td>
+              @if (item.monto_cotizacion != null) {
+                <span style="font-weight:700;color:#16A34A">Bs {{ item.monto_cotizacion | number:'1.2-2' }}</span>
+              } @else {
+                <span class="text-muted">—</span>
+              }
+            </td>
+            <td class="td-date text-muted">{{ item.fecha_cierre | date:'dd/MM/yyyy HH:mm' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

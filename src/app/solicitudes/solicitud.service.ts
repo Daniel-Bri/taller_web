@@ -35,8 +35,8 @@ export interface MiSolicitud {
 
 export interface SolicitudDisponible {
   incidente_id: number;
-  latitud: number;
-  longitud: number;
+  latitud: number | null;
+  longitud: number | null;
   descripcion: string | null;
   tipo_problema: string;
   prioridad: string;
@@ -44,6 +44,9 @@ export interface SolicitudDisponible {
   fotos_urls: string[];
   tiene_audio: boolean;
   created_at: string;
+  es_sos: boolean;
+  distancia_km: number | null;   // §4.6 Motor IA
+  score_ia: number;              // §4.6 Relevancia Yango-like
 }
 
 @Injectable({ providedIn: 'root' })
@@ -62,6 +65,10 @@ export class SolicitudService {
     return this.http.get<SolicitudDisponible[]>(`${this.API}/disponibles`).pipe(timeout(12000));
   }
 
+  misAsignacionesActivas(): Observable<AsignacionResponse[]> {
+    return this.http.get<AsignacionResponse[]>(`${this.API}/mis-asignaciones`).pipe(timeout(12000));
+  }
+
   /** CU15 – incidente_id es el id devuelto en listar disponibles. */
   aceptar(incidenteId: number, eta?: number | null): Observable<AsignacionResponse> {
     const body: { eta?: number } = {};
@@ -69,5 +76,19 @@ export class SolicitudService {
     return this.http
       .patch<AsignacionResponse>(`${this.API}/${incidenteId}/aceptar`, body)
       .pipe(timeout(15000));
+  }
+
+  /** CU11 – Cliente cancela su incidente. */
+  cancelar(incidenteId: number): Observable<{ id: number; estado: string; msg: string }> {
+    return this.http
+      .patch<{ id: number; estado: string; msg: string }>(`${this.API}/${incidenteId}/cancelar`, {})
+      .pipe(timeout(10000));
+  }
+
+  /** CU16 – Taller rechaza su asignación activa para un incidente. */
+  rechazar(incidenteId: number): Observable<{ asignacion_id: number; estado: string; msg: string }> {
+    return this.http
+      .patch<{ asignacion_id: number; estado: string; msg: string }>(`${this.API}/${incidenteId}/rechazar`, {})
+      .pipe(timeout(10000));
   }
 }

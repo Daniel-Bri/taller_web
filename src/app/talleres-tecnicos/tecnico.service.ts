@@ -72,6 +72,7 @@ export interface AsignacionResponse {
   eta: number | null;
   observacion: string | null;
   created_at: string;
+  es_sos: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

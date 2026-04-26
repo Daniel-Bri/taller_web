@@ -1,2 +1,82 @@
-<!-- CU32 - Ver Comisiones -->
-<p>CU32 - Ver Comisiones</p>
+<!-- CU26 - Gestionar Métricas del Taller (comisiones reales) -->
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Métricas y Comisiones</h1>
+    <p class="page-sub">CU26 · Ingresos reales y comisión del {{ tasaPct | number:'1.0-0' }}% de la plataforma</p>
+  </div>
+  <button class="btn-secondary" (click)="cargar()" [disabled]="loading">
+    <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
+    Actualizar
+  </button>
+</div>
+
+@if (errorMsg) {
+  <div class="alert-danger">{{ errorMsg }}</div>
+}
+
+@if (loading) {
+  <div class="loading-row"><span class="spinner-dark"></span> Cargando métricas...</div>
+} @else if (data) {
+
+  <!-- Tarjetas de resumen -->
+  <div class="stats-row" style="margin-bottom:1.75rem">
+    <div class="stat-box">
+      <span class="stat-val">{{ data.total_servicios }}</span>
+      <span class="stat-lbl">Servicios pagados</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-val">Bs {{ data.ingresos_brutos | number:'1.2-2' }}</span>
+      <span class="stat-lbl">Ingresos brutos</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-val" style="color:#DC2626">Bs {{ data.comision_plataforma | number:'1.2-2' }}</span>
+      <span class="stat-lbl">Comisión plataforma ({{ tasaPct | number:'1.0-0' }}%)</span>
+    </div>
+    <div class="stat-box">
+      <span class="stat-val" style="color:#16A34A">Bs {{ data.ingresos_netos | number:'1.2-2' }}</span>
+      <span class="stat-lbl">Ingresos netos</span>
+    </div>
+  </div>
+
+  <!-- Historial de pagos recibidos -->
+  <h2 style="font-size:1rem;font-weight:700;color:var(--text);margin:0 0 1rem">Pagos recibidos</h2>
+
+  @if (data.pagos.length === 0) {
+    <div class="empty-state">
+      <span class="material-symbols-outlined" style="font-size:40px;color:#9CA3AF">payments</span>
+      <p>Aún no hay pagos registrados. Los pagos aparecen aquí cuando el cliente paga una cotización.</p>
+    </div>
+  } @else {
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Pago #</th>
+            <th>Incidente</th>
+            <th>Monto bruto</th>
+            <th>Comisión ({{ tasaPct | number:'1.0-0' }}%)</th>
+            <th>Ingreso neto</th>
+            <th>Método</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of data.pagos; track p.pago_id) {
+            <tr>
+              <td class="td-id">{{ p.pago_id }}</td>
+              <td><strong>#{{ p.incidente_id }}</strong></td>
+              <td style="font-weight:600">Bs {{ p.monto_bruto | number:'1.2-2' }}</td>
+              <td style="color:#DC2626">Bs {{ p.comision | number:'1.2-2' }}</td>
+              <td style="font-weight:700;color:#16A34A">Bs {{ p.monto_neto | number:'1.2-2' }}</td>
+              <td>
+                <span class="badge badge-primary">{{ p.metodo }}</span>
+              </td>
+              <td class="td-date text-muted">{{ p.fecha | date:'dd/MM/yyyy' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}

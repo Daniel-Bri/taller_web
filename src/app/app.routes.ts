@@ -14,17 +14,27 @@ import { GenerarCotizacionComponent } from './cotizacion-pagos/generar-cotizacio
 import { VerCotizacionComponent } from './cotizacion-pagos/ver-cotizacion/ver-cotizacion.component';
 import { ConfirmarCotizacionComponent } from './cotizacion-pagos/confirmar-cotizacion/confirmar-cotizacion.component';
 import { ChatComponent } from './comunicacion/chat/chat.component';
+import { NotificacionesComponent } from './comunicacion/notificaciones/notificaciones.component';
+import { VerComisionesComponent } from './cotizacion-pagos/ver-comisiones/ver-comisiones.component';
+import { VerDetalleIncidenteComponent } from './solicitudes/ver-detalle-incidente/ver-detalle-incidente.component';
 import { AdjuntarFotosComponent } from './emergencias/adjuntar-fotos/adjuntar-fotos.component';
 import { EnviarAudioComponent } from './emergencias/enviar-audio/enviar-audio.component';
 import { VerSolicitudesDisponiblesComponent } from './solicitudes/ver-solicitudes-disponibles/ver-solicitudes-disponibles.component';
 import { VerEstadoSolicitudComponent } from './solicitudes/ver-estado-solicitud/ver-estado-solicitud.component';
 import { AuditoriaComponent } from './reportes/auditoria/auditoria.component';
+import { RealizarPagoComponent } from './cotizacion-pagos/realizar-pago/realizar-pago.component';
+import { HistorialServiciosComponent } from './reportes/historial-servicios/historial-servicios.component';
+import { AccesoDenegadoComponent } from './shared/acceso-denegado/acceso-denegado.component';
+import { CambiarContrasenaComponent } from './acceso-registro/cambiar-contrasena/cambiar-contrasena.component';
+import { RecuperarContrasenaComponent } from './acceso-registro/recuperar-contrasena/recuperar-contrasena.component';
 import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
-  { path: '',       redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login',  component: IniciarSesionComponent },
-  { path: 'registro', component: RegistrarseComponent },
+  { path: '',                    redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login',               component: IniciarSesionComponent },
+  { path: 'registro',            component: RegistrarseComponent },
+  { path: 'recuperar-contrasena', component: RecuperarContrasenaComponent },
 
   {
     path: 'app',
@@ -34,56 +44,61 @@ export const routes: Routes = [
       { path: '',          redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardHomeComponent },
 
+      // ── Pantalla de acceso denegado ────────────────────────
+      { path: 'acceso-denegado', component: AccesoDenegadoComponent },
+
       // ── Acceso y Registro ──────────────────────────────────
-      { path: 'acceso-registro/registrar-taller',     component: RegistrarTallerComponent },
-      { path: 'acceso-registro/aprobar-talleres',     component: AprobarTalleresComponent },
+      { path: 'acceso-registro/cambiar-contrasena',  component: CambiarContrasenaComponent },
+      { path: 'acceso-registro/registrar-taller',    component: RegistrarTallerComponent,    canActivate: [roleGuard], data: { roles: ['taller'] } },
+      { path: 'acceso-registro/aprobar-talleres',    component: AprobarTalleresComponent,    canActivate: [roleGuard], data: { roles: ['admin'] } },
+      { path: 'acceso-registro/gestionar-usuarios',  component: GestionarUsuariosComponent,  canActivate: [roleGuard], data: { roles: ['admin'] } },
+      { path: 'acceso-registro/gestionar-vehiculos', component: DashboardHomeComponent,      canActivate: [roleGuard], data: { roles: ['cliente'] } },
 
-      // ── CU27 · Gestionar Usuarios (Admin) ──────────────────
-      { path: 'acceso-registro/gestionar-usuarios',   component: GestionarUsuariosComponent },
-      { path: 'acceso-registro/gestionar-vehiculos',  component: DashboardHomeComponent },
+      // ── Emergencias (CU05–CU09) ────────────────────────────
+      { path: 'emergencias/adjuntar-fotos',          component: AdjuntarFotosComponent,      canActivate: [roleGuard], data: { roles: ['cliente'] } },
+      { path: 'emergencias/enviar-audio',            component: EnviarAudioComponent,        canActivate: [roleGuard], data: { roles: ['cliente'] } },
+      { path: 'emergencias/reportar-emergencia',     component: DashboardHomeComponent,      canActivate: [roleGuard], data: { roles: ['cliente'] } },
+      { path: 'emergencias/enviar-ubicacion',        component: DashboardHomeComponent,      canActivate: [roleGuard], data: { roles: ['cliente'] } },
 
-      // ── CU15 · Actualizar Estado Servicio ──────────────────
-      { path: 'talleres-tecnicos/actualizar-estado-servicio',   component: ActualizarEstadoServicioComponent },
+      // ── Solicitudes ────────────────────────────────────────
+      { path: 'solicitudes/ver-solicitudes-disponibles', component: VerSolicitudesDisponiblesComponent, canActivate: [roleGuard], data: { roles: ['taller'] } },
+      { path: 'solicitudes/ver-estado-solicitud',        component: VerEstadoSolicitudComponent,        canActivate: [roleGuard], data: { roles: ['cliente'] } },
+      { path: 'solicitudes/ver-detalle-incidente',       component: VerDetalleIncidenteComponent,       canActivate: [roleGuard], data: { roles: ['taller'] } },
+      { path: 'solicitudes/cancelar-solicitud',          component: DashboardHomeComponent,             canActivate: [roleGuard], data: { roles: ['cliente'] } },
 
-      // ── CU22 · Registrar Servicio Realizado ────────────────
-      { path: 'talleres-tecnicos/registrar-servicio-realizado', component: RegistrarServicioRealizadoComponent },
+      // ── Talleres y Técnicos ────────────────────────────────
+      { path: 'talleres-tecnicos/gestionar-tecnicos',           component: GestionarTecnicosComponent,           canActivate: [roleGuard], data: { roles: ['taller'] } },
+      { path: 'talleres-tecnicos/gestionar-disponibilidad',     component: GestionarDisponibilidadComponent,     canActivate: [roleGuard], data: { roles: ['taller'] } },
+      { path: 'talleres-tecnicos/actualizar-estado-servicio',   component: ActualizarEstadoServicioComponent,    canActivate: [roleGuard], data: { roles: ['taller', 'tecnico'] } },
+      { path: 'talleres-tecnicos/registrar-servicio-realizado', component: RegistrarServicioRealizadoComponent, canActivate: [roleGuard], data: { roles: ['taller', 'tecnico'] } },
 
-      // ── CU25 · Gestionar Técnicos ──────────────────────────
-      { path: 'talleres-tecnicos/gestionar-tecnicos',           component: GestionarTecnicosComponent },
+      // ── Cotización y Pagos ─────────────────────────────────
+      { path: 'cotizacion-pagos/generar-cotizacion',   component: GenerarCotizacionComponent,   canActivate: [roleGuard], data: { roles: ['taller'] } },
+      { path: 'cotizacion-pagos/ver-cotizacion',       component: VerCotizacionComponent,       canActivate: [roleGuard], data: { roles: ['taller', 'cliente'] } },
+      { path: 'cotizacion-pagos/confirmar-cotizacion', component: ConfirmarCotizacionComponent, canActivate: [roleGuard], data: { roles: ['taller'] } },
+      { path: 'cotizacion-pagos/ver-comisiones',       component: VerComisionesComponent,       canActivate: [roleGuard], data: { roles: ['taller', 'admin'] } },
+      { path: 'cotizacion-pagos/realizar-pago',        component: RealizarPagoComponent,        canActivate: [roleGuard], data: { roles: ['cliente'] } },
 
-      // ── CU16 · Gestionar Disponibilidad ───────────────────
-      { path: 'talleres-tecnicos/gestionar-disponibilidad',     component: GestionarDisponibilidadComponent },
+      // ── Comunicación ───────────────────────────────────────
+      { path: 'comunicacion/chat',             component: ChatComponent,           canActivate: [roleGuard], data: { roles: ['cliente', 'taller', 'tecnico'] } },
+      { path: 'comunicacion/notificaciones',   component: NotificacionesComponent, canActivate: [roleGuard], data: { roles: ['cliente', 'taller'] } },
+      { path: 'comunicacion/ver-tecnico-mapa', component: DashboardHomeComponent,  canActivate: [roleGuard], data: { roles: ['cliente'] } },
 
-      // ── CU20 · Gestionar Cotización ────────────────────────
-      { path: 'cotizacion-pagos/generar-cotizacion',   component: GenerarCotizacionComponent },
-      { path: 'cotizacion-pagos/ver-cotizacion',       component: VerCotizacionComponent },
-      { path: 'cotizacion-pagos/confirmar-cotizacion', component: ConfirmarCotizacionComponent },
+      // ── Reportes ───────────────────────────────────────────
+      { path: 'reportes/auditoria',           component: AuditoriaComponent,    canActivate: [roleGuard], data: { roles: ['admin'] } },
+      { path: 'reportes/historial-servicios', component: HistorialServiciosComponent, canActivate: [roleGuard], data: { roles: ['cliente', 'taller'] } },
+      { path: 'reportes/metricas-taller',     component: DashboardHomeComponent, canActivate: [roleGuard], data: { roles: ['taller'] } },
+      { path: 'reportes/metricas-globales',   component: DashboardHomeComponent, canActivate: [roleGuard], data: { roles: ['admin'] } },
+      { path: 'reportes/calificar-servicio',  component: DashboardHomeComponent, canActivate: [roleGuard], data: { roles: ['cliente'] } },
 
-      // ── CU18 · Chat ────────────────────────────────────────
-      { path: 'comunicacion/chat',                     component: ChatComponent },
-
-      // ── CU07 · Adjuntar Fotos ──────────────────────────────
-      { path: 'emergencias/adjuntar-fotos',            component: AdjuntarFotosComponent },
-
-      // ── CU08 · Enviar Audio ────────────────────────────────
-      { path: 'emergencias/enviar-audio',              component: EnviarAudioComponent },
-
-      // ── CU13 · Ver Solicitudes Disponibles ────────────────
-      { path: 'solicitudes/ver-solicitudes-disponibles', component: VerSolicitudesDisponiblesComponent },
-
-      // ── CU10 · Ver Estado de Solicitud ────────────────────
-      { path: 'solicitudes/ver-estado-solicitud',      component: VerEstadoSolicitudComponent },
-
-      // ── CU35 · Auditoría / Bitácora (Admin) ───────────────
-      { path: 'reportes/auditoria',                    component: AuditoriaComponent },
-
-      // ── Stubs restantes ───────────────────────────────────
+      // ── Stubs catch-all (rutas no implementadas aún) ───────
       { path: 'emergencias/:cu',       component: DashboardHomeComponent },
       { path: 'solicitudes/:cu',       component: DashboardHomeComponent },
       { path: 'talleres-tecnicos/:cu', component: DashboardHomeComponent },
       { path: 'cotizacion-pagos/:cu',  component: DashboardHomeComponent },
       { path: 'comunicacion/:cu',      component: DashboardHomeComponent },
       { path: 'reportes/:cu',          component: DashboardHomeComponent },
+      { path: 'acceso-registro/:cu',   component: DashboardHomeComponent },
     ],
   },
 

@@ -1,2 +1,111 @@
-<!-- CU14 - Ver Detalle del Incidente -->
-<p>CU14 - Ver Detalle del Incidente</p>
+<!-- CU14 - Consultar Incidente -->
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Detalle de Incidentes</h1>
+    <p class="page-sub">CU14 · Consulta los incidentes activos asignados a tu taller</p>
+  </div>
+  <button class="btn-secondary" (click)="cargar()" [disabled]="loading">
+    <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
+    Actualizar
+  </button>
+</div>
+
+@if (errorMsg) {
+  <div class="alert-danger">{{ errorMsg }}</div>
+}
+
+@if (loading) {
+  <div class="loading-row">
+    <span class="spinner-dark"></span> Cargando incidentes...
+  </div>
+} @else if (asignaciones.length === 0) {
+  <div class="empty-state">
+    <span class="material-symbols-outlined" style="font-size:40px;color:#9CA3AF">assignment</span>
+    <p>No hay incidentes activos asignados a tu taller.</p>
+    <p style="font-size:0.85rem;color:#6B7280;margin-top:0.5rem">
+      Los incidentes aceptados aparecerán aquí con su estado actual.
+    </p>
+  </div>
+} @else {
+  <div style="display:grid;grid-template-columns:320px 1fr;gap:1.25rem;align-items:start">
+
+    <!-- Lista de asignaciones -->
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      @for (a of asignaciones; track a.id) {
+        <button
+          type="button"
+          style="text-align:left;background:#fff;border:1.5px solid #E5E7EB;border-radius:12px;padding:1rem;cursor:pointer;width:100%;transition:border-color .15s"
+          [style.border-color]="seleccion?.id === a.id ? 'var(--primary)' : '#E5E7EB'"
+          (click)="seleccionar(a)"
+        >
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+            <span style="font-size:0.82rem;font-weight:700;color:#9CA3AF">Asig. #{{ a.id }}</span>
+            <span class="badge" [ngClass]="info(a.estado).badge">{{ info(a.estado).label }}</span>
+          </div>
+          <div style="font-size:0.95rem;font-weight:600;color:var(--text);margin-bottom:0.25rem">
+            Incidente #{{ a.incidente_id }}
+          </div>
+          <div style="font-size:0.8rem;color:#9CA3AF">{{ a.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
+          @if (a.tecnico_id) {
+            <div style="margin-top:0.4rem;font-size:0.8rem;color:#6B7280;display:flex;align-items:center;gap:4px">
+              <span class="material-symbols-outlined" style="font-size:14px">person</span>
+              Técnico #{{ a.tecnico_id }}
+            </div>
+          }
+        </button>
+      }
+    </div>
+
+    <!-- Panel de detalle -->
+    <div>
+      @if (seleccion) {
+        <div class="form-card" style="margin:0">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1.25rem">
+            <div>
+              <h2 style="font-size:1.05rem;font-weight:700;margin:0">Asignación #{{ seleccion.id }}</h2>
+              <p style="margin:0.35rem 0 0;font-size:0.85rem;color:#6B7280">Incidente #{{ seleccion.incidente_id }}</p>
+            </div>
+            <button class="btn-secondary" (click)="cerrar()">Cerrar</button>
+          </div>
+
+          <div class="stats-row" style="margin-bottom:1.25rem">
+            <div class="stat-box">
+              <span class="stat-val" style="font-size:0.9rem">Estado</span>
+              <span class="stat-lbl">
+                <span class="badge" [ngClass]="info(seleccion.estado).badge">{{ info(seleccion.estado).label }}</span>
+              </span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-val" style="font-size:0.9rem">ETA</span>
+              <span class="stat-lbl" style="font-size:0.88rem">{{ seleccion.eta ? seleccion.eta + ' min' : '—' }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-val" style="font-size:0.9rem">Técnico</span>
+              <span class="stat-lbl" style="font-size:0.88rem">
+                {{ seleccion.tecnico_id ? '#' + seleccion.tecnico_id : 'Sin asignar' }}
+              </span>
+            </div>
+          </div>
+
+          @if (seleccion.observacion) {
+            <h3 style="font-size:0.88rem;font-weight:700;color:var(--text);margin:0 0 0.5rem">Observaciones</h3>
+            <p style="font-size:0.9rem;color:#374151;white-space:pre-wrap;margin:0 0 1rem;background:#F9FAFB;border-radius:8px;padding:0.75rem">
+              {{ seleccion.observacion }}
+            </p>
+          }
+
+          <p style="margin-top:0.75rem;font-size:0.8rem;color:#9CA3AF;border-top:1px solid #F3F4F6;padding-top:0.75rem">
+            Creado: {{ seleccion.created_at | date:'medium' }}
+          </p>
+        </div>
+      } @else {
+        <div class="empty-state" style="min-height:260px;background:#fff;border:1.5px solid #E5E7EB;border-radius:12px">
+          <span class="material-symbols-outlined" style="font-size:36px;color:#D1D5DB">touch_app</span>
+          <p>Selecciona una asignación para ver el detalle del incidente.</p>
+        </div>
+      }
+    </div>
+
+  </div>
+}

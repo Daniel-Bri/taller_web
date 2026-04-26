@@ -1,0 +1,104 @@
+<!-- Recuperar contraseña (público) -->
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <div class="auth-logo">RutaSegura</div>
+      <p class="auth-subtitle">Restablece tu contraseña</p>
+    </div>
+
+    <!-- ── Éxito ───────────────────────────────────────────── -->
+    @if (success) {
+      <div class="success-banner">
+        Contraseña restablecida. Redirigiendo al inicio de sesión…
+      </div>
+    }
+
+    <!-- ── Paso 1: ingresar email ──────────────────────────── -->
+    @else if (step === 1) {
+      <p style="font-size:13px;color:#6B7280;margin-bottom:1.2rem">
+        Ingresa tu correo y te enviaremos un código de 6 dígitos.
+      </p>
+
+      <form [formGroup]="emailForm" (ngSubmit)="submitEmail()" novalidate>
+
+        <div class="field">
+          <label for="email">Correo electrónico</label>
+          <input id="email" type="email" formControlName="email"
+                 placeholder="tu&#64;correo.com" autocomplete="email" />
+          @if (email.invalid && email.touched) {
+            <span class="field-error">Ingresa un correo válido</span>
+          }
+        </div>
+
+        @if (serverError) {
+          <span class="server-error">{{ serverError }}</span>
+        }
+
+        <button type="submit" class="btn-primary" style="width:100%;margin-top:1rem" [disabled]="loading">
+          @if (loading) { <span class="spinner"></span> } @else { Enviar código }
+        </button>
+
+      </form>
+    }
+
+    <!-- ── Paso 2: código + nueva contraseña ──────────────── -->
+    @else {
+      <div style="background:#EFF6FF;border-radius:8px;padding:12px 14px;margin-bottom:1.2rem;font-size:13px;color:#1E40AF">
+        Enviamos un código a <strong>{{ emailEnviado }}</strong>.
+        Revisa también tu bandeja de spam.
+      </div>
+
+      <form [formGroup]="resetForm" (ngSubmit)="submitReset()" novalidate>
+
+        <div class="field">
+          <label for="code">Código de verificación</label>
+          <input id="code" type="text" formControlName="code"
+                 placeholder="123456" maxlength="6"
+                 style="letter-spacing:6px;font-size:1.2rem;font-weight:700" />
+          @if (code.invalid && code.touched) {
+            <span class="field-error">Ingresa el código de 6 dígitos</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="new_password">Nueva contraseña</label>
+          <input id="new_password" type="password" formControlName="new_password"
+                 placeholder="••••••••" autocomplete="new-password" />
+          @if (newPw.invalid && newPw.touched) {
+            <span class="field-error">Mínimo 6 caracteres</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="confirm_password">Confirmar contraseña</label>
+          <input id="confirm_password" type="password" formControlName="confirm_password"
+                 placeholder="••••••••" autocomplete="new-password" />
+          @if (confirm.touched && resetForm.hasError('mismatch')) {
+            <span class="field-error">Las contraseñas no coinciden</span>
+          }
+        </div>
+
+        @if (serverError) {
+          <span class="server-error">{{ serverError }}</span>
+        }
+
+        <button type="submit" class="btn-primary" style="width:100%;margin-top:1rem" [disabled]="loading">
+          @if (loading) { <span class="spinner"></span> } @else { Restablecer contraseña }
+        </button>
+
+      </form>
+
+      <p style="text-align:center;margin-top:1rem;font-size:13px">
+        <a href="#" (click)="$event.preventDefault(); volverPaso1()" style="color:#2563EB">
+          ← Cambiar correo
+        </a>
+      </p>
+    }
+
+    <p class="auth-footer">
+      <a routerLink="/login">Volver al inicio de sesión</a>
+    </p>
+
+  </div>
+</div>
