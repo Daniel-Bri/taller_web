@@ -17,6 +17,7 @@ import { AdjuntarFotosComponent } from './emergencias/adjuntar-fotos/adjuntar-fo
 import { EnviarAudioComponent } from './emergencias/enviar-audio/enviar-audio.component';
 import { VerSolicitudesDisponiblesComponent } from './solicitudes/ver-solicitudes-disponibles/ver-solicitudes-disponibles.component';
 import { VerEstadoSolicitudComponent } from './solicitudes/ver-estado-solicitud/ver-estado-solicitud.component';
+import { VerDetalleIncidenteComponent } from './solicitudes/ver-detalle-incidente/ver-detalle-incidente.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -71,6 +72,7 @@ export const routes: Routes = [
 
       // ── CU10 · Ver Estado de Solicitud ───────────────
       { path: 'solicitudes/ver-estado-solicitud',     component: VerEstadoSolicitudComponent },
+      { path: 'solicitudes/ver-detalle-incidente',    component: VerDetalleIncidenteComponent },
 
       // ── Stubs restantes ─────────────────────────────
       { path: 'emergencias/:cu',                      component: DashboardHomeComponent },

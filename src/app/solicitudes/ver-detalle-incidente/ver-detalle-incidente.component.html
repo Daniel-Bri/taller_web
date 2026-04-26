@@ -1,2 +1,82 @@
-<!-- CU14 - Ver Detalle del Incidente -->
-<p>CU14 - Ver Detalle del Incidente</p>
+<!-- CU14 - Ver detalle del incidente -->
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Detalle del incidente</h1>
+    <p class="page-sub">CU14 · Evidencias, clasificación IA y estado operativo</p>
+  </div>
+  <button class="btn-secondary" (click)="cargar()" [disabled]="loading || incidenteId <= 0">
+    Actualizar
+  </button>
+</div>
+
+@if (incidenteId <= 0) {
+  <div class="empty-state">
+    <p>Selecciona una solicitud desde "Ver Disponibles" para abrir su detalle.</p>
+  </div>
+} @else if (loading) {
+  <div class="loading-row"><span class="spinner-dark"></span> Cargando detalle...</div>
+} @else if (errorMsg) {
+  <div class="alert-danger">{{ errorMsg }}</div>
+} @else if (data) {
+  <div class="detail-grid">
+    <div class="form-card">
+      <h2 class="sec-title">Incidente #{{ data.incidente.id }}</h2>
+      <div class="detail-row"><b>Estado:</b> {{ data.incidente.estado }}</div>
+      <div class="detail-row"><b>Prioridad:</b> {{ data.incidente.prioridad }}</div>
+      <div class="detail-row"><b>Descripción:</b> {{ data.incidente.descripcion || '—' }}</div>
+      <div class="detail-row">
+        <b>Ubicación:</b>
+        @if (data.incidente.latitud != null && data.incidente.longitud != null) {
+          {{ data.incidente.latitud }}, {{ data.incidente.longitud }}
+        } @else {
+          Sin coordenadas
+        }
+      </div>
+      <div class="map-placeholder">Mapa (placeholder)</div>
+    </div>
+
+    <div class="form-card">
+      <h2 class="sec-title">Clasificación IA</h2>
+      @if (data.clasificacion_ia) {
+        <div class="detail-row"><b>Categoría:</b> {{ data.clasificacion_ia.categoria }}</div>
+        <div class="detail-row"><b>Confianza:</b> {{ data.clasificacion_ia.confianza ?? 'N/A' }}</div>
+        <div class="detail-row"><b>Resumen:</b> {{ data.clasificacion_ia.resumen || '—' }}</div>
+      } @else {
+        <p class="muted">Sin clasificación disponible.</p>
+      }
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="form-card">
+      <h2 class="sec-title">Evidencias (fotos)</h2>
+      @if (data.fotos_urls.length === 0) {
+        <p class="muted">No hay imágenes.</p>
+      } @else {
+        <div class="gallery">
+          @for (f of data.fotos_urls; track f) {
+            <a [href]="fullAsset(f)" target="_blank" rel="noopener">
+              <img [src]="fullAsset(f)" alt="Evidencia" />
+            </a>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="form-card">
+      <h2 class="sec-title">Evidencias (audio)</h2>
+      @if (data.audios_urls.length === 0) {
+        <p class="muted">No hay audios.</p>
+      } @else {
+        <div class="audio-list">
+          @for (a of data.audios_urls; track a; let i = $index) {
+            <div class="audio-item">
+              <span>Audio #{{ i + 1 }}</span>
+              <audio controls [src]="fullAsset(a)"></audio>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}
