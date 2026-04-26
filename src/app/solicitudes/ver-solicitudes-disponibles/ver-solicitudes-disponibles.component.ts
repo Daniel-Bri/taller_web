@@ -13,14 +13,18 @@ import { environment } from '../../../environments/environment';
 })
 export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
   items: SolicitudDisponible[] = [];
+  filtered: SolicitudDisponible[] = [];
   loading = false;
   errorMsg = '';
-  seleccion: SolicitudDisponible | null = null;
+  seleccion: SolicitudDisponible | null = null; // modal
   etaMinutos: number | null = null;
   aceptando = false;
   /** Mensaje global al aceptar solicitud (éxito / error). */
   bannerMsg: { tipo: 'ok' | 'error'; texto: string } | null = null;
+  prioridadFiltro = '';
+  distanciaFiltro = '';
   private _poll?: ReturnType<typeof setInterval>;
+  private _aceptarWatchdog?: ReturnType<typeof setTimeout>;
 
   constructor(private solicitudSvc: SolicitudService) {}
 
@@ -31,6 +35,7 @@ export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this._poll) clearInterval(this._poll);
+    if (this._aceptarWatchdog) clearTimeout(this._aceptarWatchdog);
   }
 
   cargar(silencioso = false): void {
@@ -41,9 +46,7 @@ export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
     this.solicitudSvc.listarDisponibles().subscribe({
       next: (data) => {
         this.items = data;
-        if (this.seleccion) {
-          this.seleccion = data.find((d) => d.incidente_id === this.seleccion!.incidente_id) ?? null;
-        }
+        this.aplicarFiltros();
         this.loading = false;
       },
       error: (e) => {
@@ -83,19 +86,33 @@ export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
     if (!this.seleccion || this.aceptando) return;
     this.aceptando = true;
     this.bannerMsg = null;
+    if (this._aceptarWatchdog) clearTimeout(this._aceptarWatchdog);
+    this._aceptarWatchdog = setTimeout(() => {
+      if (!this.aceptando) return;
+      this.aceptando = false;
+      this.bannerMsg = {
+        tipo: 'error',
+        texto: 'La aceptación está tardando demasiado. Reintenta o actualiza la página.',
+      };
+    }, 20000);
     const eta = this.etaMinutos != null && this.etaMinutos > 0 ? this.etaMinutos : undefined;
     this.solicitudSvc.aceptar(this.seleccion.incidente_id, eta).subscribe({
       next: (a) => {
+        if (this._aceptarWatchdog) clearTimeout(this._aceptarWatchdog);
         this.aceptando = false;
-    this.bannerMsg = {
+        this.bannerMsg = {
           tipo: 'ok',
           texto: `Solicitud aceptada. Asignación #${a.id}. El incidente pasó a en proceso.`,
         };
+        if (typeof window !== 'undefined') {
+          window.alert(`Solicitud aceptada (#${a.id}).`);
+        }
         this.cargar(true);
         this.seleccion = null;
         this.etaMinutos = null;
       },
       error: (e) => {
+        if (this._aceptarWatchdog) clearTimeout(this._aceptarWatchdog);
         this.aceptando = false;
         const d = e?.error?.detail;
         this.bannerMsg = {
@@ -104,6 +121,37 @@ export class VerSolicitudesDisponiblesComponent implements OnInit, OnDestroy {
         };
       },
     });
+  }
+
+  aplicarFiltros(): void {
+    this.filtered = this.items.filter((s) => {
+      if (this.prioridadFiltro && s.prioridad !== this.prioridadFiltro) return false;
+      if (this.distanciaFiltro) {
+        const d = this.distanciaKm(s);
+        if (this.distanciaFiltro === '<5' && d >= 5) return false;
+        if (this.distanciaFiltro === '5-10' && (d < 5 || d > 10)) return false;
+        if (this.distanciaFiltro === '>10' && d <= 10) return false;
+      }
+      return true;
+    });
+    if (this.seleccion) {
+      this.seleccion = this.filtered.find((x) => x.incidente_id === this.seleccion!.incidente_id) ?? null;
+    }
+  }
+
+  distanciaKm(s: SolicitudDisponible): number {
+    if (typeof s.distancia_km === 'number') {
+      return Number(s.distancia_km.toFixed(1));
+    }
+    return 0;
+  }
+
+  tiempoRelativo(created: string): string {
+    const d = new Date(created);
+    const diffMin = Math.max(1, Math.floor((Date.now() - d.getTime()) / 60000));
+    if (diffMin < 60) return `Hace ${diffMin} minutos`;
+    const h = Math.floor(diffMin / 60);
+    return `Hace ${h} hora${h > 1 ? 's' : ''}`;
   }
 
   fotoFullUrl(path: string): string {

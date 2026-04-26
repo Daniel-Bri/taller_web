@@ -76,6 +76,42 @@
 
   <!-- ── CONTENIDO PRINCIPAL ────────────────────── -->
   <main class="main-content">
+    <div class="top-actions">
+      <button class="notif-btn" (click)="toggleNotifs()">
+        <span class="material-symbols-outlined">notifications</span>
+        @if (notifNoLeidas > 0) {
+          <span class="notif-badge">{{ notifNoLeidas }}</span>
+        }
+      </button>
+      @if (notifOpen) {
+        <div class="notif-dropdown">
+          <div class="notif-head">
+            <strong>Notificaciones</strong>
+            <button class="btn-secondary" (click)="cargarNotifs()">Actualizar</button>
+          </div>
+          @if (notifLoading) {
+            <div class="notif-empty">Cargando...</div>
+          } @else if (notifs.length === 0) {
+            <div class="notif-empty">Sin notificaciones</div>
+          } @else {
+            <div class="notif-list">
+              @for (n of notifs; track n.id) {
+                <button class="notif-item"
+                        [class.unread]="!n.leida"
+                        [class.read]="n.leida"
+                        [class.tipo-positiva]="notifTipoClase(n)==='positiva'"
+                        [class.tipo-neutra]="notifTipoClase(n)==='neutra'"
+                        [class.tipo-negativa]="notifTipoClase(n)==='negativa'"
+                        (click)="marcarLeida(n)">
+                  <div class="notif-title">{{ n.titulo }}</div>
+                  <div class="notif-msg">{{ n.mensaje }}</div>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
     <div class="content-area">
       <router-outlet />
     </div>

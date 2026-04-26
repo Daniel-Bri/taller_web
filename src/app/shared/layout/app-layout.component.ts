@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../acceso-registro/auth.service';
+import { Notificacion, NotificacionService } from '../../comunicacion/notificacion.service';
 
 interface NavItem  { label: string; route: string; }
 interface NavSection {
@@ -18,7 +19,7 @@ interface NavSection {
   templateUrl: './app-layout.component.html',
   styleUrl: './app-layout.component.css',
 })
-export class AppLayoutComponent {
+export class AppLayoutComponent implements OnInit, OnDestroy {
   collapsed = signal(false);
   openSections = new Set<string>(['acceso']);
 
@@ -99,7 +100,25 @@ export class AppLayoutComponent {
     },
   ];
 
-  constructor(private auth: AuthService, private router: Router) {}
+  notifs: Notificacion[] = [];
+  notifOpen = false;
+  notifLoading = false;
+  private _poll?: ReturnType<typeof setInterval>;
+
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private notifSvc: NotificacionService,
+  ) {}
+
+  ngOnInit(): void {
+    this.cargarNotifs();
+    this._poll = setInterval(() => this.cargarNotifs(true), 20000);
+  }
+
+  ngOnDestroy(): void {
+    if (this._poll) clearInterval(this._poll);
+  }
 
   get user() { return this.auth.getUser(); }
   get userInitial() { return (this.user?.username ?? 'U')[0].toUpperCase(); }
@@ -121,6 +140,42 @@ export class AppLayoutComponent {
   }
 
   isOpen(id: string) { return this.openSections.has(id); }
+
+  get notifNoLeidas(): number {
+    return this.notifs.filter((n) => !n.leida).length;
+  }
+
+  toggleNotifs(): void {
+    this.notifOpen = !this.notifOpen;
+  }
+
+  cargarNotifs(silent = false): void {
+    if (!silent) this.notifLoading = true;
+    this.notifSvc.listarMias().subscribe({
+      next: (rows) => {
+        this.notifs = rows.slice(0, 12);
+        this.notifLoading = false;
+      },
+      error: () => {
+        this.notifLoading = false;
+      },
+    });
+  }
+
+  marcarLeida(n: Notificacion): void {
+    if (n.leida) return;
+    this.notifSvc.marcarLeida(n.id).subscribe({
+      next: () => { n.leida = true; },
+      error: () => {},
+    });
+  }
+
+  notifTipoClase(n: Notificacion): string {
+    const t = (n.tipo || '').toLowerCase();
+    if (t.includes('cancel') || t.includes('rechaz')) return 'negativa';
+    if (t.includes('acept') || t.includes('resuelto') || t.includes('solucion')) return 'positiva';
+    return 'neutra';
+  }
 
   logout() {
     this.auth.logout();

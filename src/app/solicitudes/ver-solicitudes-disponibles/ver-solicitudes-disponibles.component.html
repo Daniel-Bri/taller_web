@@ -3,12 +3,9 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Solicitudes disponibles</h1>
-    <p class="page-sub">CU13 · Incidentes cercanos sin taller asignado (ubicación y evidencias)</p>
+    <p class="page-sub">Gestiona las solicitudes de asistencia vehicular de emergencia</p>
   </div>
-  <button class="btn-secondary" type="button" (click)="cargar()" [disabled]="loading">
-    <span class="material-symbols-outlined" style="font-size:16px;margin-right:6px">refresh</span>
-    Actualizar
-  </button>
+  <button class="btn-secondary" type="button" (click)="cargar()" [disabled]="loading">Actualizar</button>
 </div>
 
 @if (errorMsg && !loading) {
@@ -35,112 +32,113 @@
     </p>
   </div>
 } @else {
+  <div class="cu13-filterbar">
+    <label>Filtros:</label>
+    <select [(ngModel)]="prioridadFiltro" (change)="aplicarFiltros()">
+      <option value="">Prioridad</option>
+      <option value="alta">Alta</option>
+      <option value="media">Media</option>
+      <option value="baja">Baja</option>
+    </select>
+    <select [(ngModel)]="distanciaFiltro" (change)="aplicarFiltros()">
+      <option value="">Distancia</option>
+      <option value="<5">< 5 km</option>
+      <option value="5-10">5 - 10 km</option>
+      <option value=">10">> 10 km</option>
+    </select>
+  </div>
 
-  <div class="cu13-layout">
-    <div class="cu13-list">
-      @for (s of items; track s.incidente_id) {
+  <div class="cu13-stats">
+    <div class="form-card"><span class="stat-lbl">Total solicitudes</span><span class="stat-val">{{ filtered.length }}</span></div>
+    <div class="form-card"><span class="stat-lbl">Alta prioridad</span><span class="stat-val">{{ filtered.filter(x => x.prioridad==='alta').length }}</span></div>
+    <div class="form-card"><span class="stat-lbl">Tiempo promedio respuesta</span><span class="stat-val">12 min</span></div>
+  </div>
+
+  <div class="cu13-grid">
+    @for (s of filtered; track s.incidente_id) {
+      <div class="cu13-card">
+        <div class="cu13-card-top">
+          <div class="cu13-meta-line">
+            <span class="material-symbols-outlined">location_on</span>
+            {{ s.latitud | number:'1.3-3' }}, {{ s.longitud | number:'1.3-3' }}
+          </div>
+          <span class="badge" [ngClass]="prioridadClass(s.prioridad)">{{ prioridadLabel(s.prioridad) }}</span>
+        </div>
+        <div class="cu13-tipo">{{ s.tipo_problema }}</div>
+        <div class="cu13-subline">
+          <span class="material-symbols-outlined">schedule</span> {{ tiempoRelativo(s.created_at) }}
+          <span class="dot">•</span> {{ distanciaKm(s) }} km
+        </div>
+        <button class="btn-primary cu13-btn" (click)="abrirDetalle(s)">Ver detalle</button>
+      </div>
+    }
+  </div>
+
+  @if (seleccion) {
+    <div class="cu14-modal-backdrop" (click)="cerrarDetalle()"></div>
+    <div class="cu14-modal">
+      <div class="cu14-head">
+        <div>
+          <h2>Detalle de incidente</h2>
+          <span class="badge" [ngClass]="prioridadClass(seleccion.prioridad)">{{ prioridadLabel(seleccion.prioridad) }}</span>
+        </div>
+        <button class="icon-close" (click)="cerrarDetalle()">×</button>
+      </div>
+      <div class="cu14-body">
+        <div class="cu14-cols">
+          <div>
+            <h4>Ubicación</h4>
+            <p>{{ seleccion.latitud | number:'1.4-4' }}, {{ seleccion.longitud | number:'1.4-4' }}</p>
+            <h4>Tipo de problema</h4>
+            <p>{{ seleccion.tipo_problema }}</p>
+            <div class="cu14-mini-row">
+              <div><b>Tiempo</b><p>{{ tiempoRelativo(seleccion.created_at) }}</p></div>
+              <div><b>Distancia</b><p>{{ distanciaKm(seleccion) }} km</p></div>
+            </div>
+          </div>
+          <div class="map-placeholder">
+            <div>Vista previa del mapa</div>
+            <small>{{ seleccion.latitud | number:'1.4-4' }}, {{ seleccion.longitud | number:'1.4-4' }}</small>
+          </div>
+        </div>
+        <h4>Descripción del incidente</h4>
+        <div class="cu14-box">{{ seleccion.descripcion || 'Sin descripción' }}</div>
+        <h4>Evidencia</h4>
+        @if (seleccion.fotos_urls.length === 0) {
+          <div class="cu14-box">Sin imágenes</div>
+        } @else {
+          <div class="cu13-gallery">
+            @for (url of seleccion.fotos_urls; track url) {
+              <a [href]="fotoFullUrl(url)" target="_blank" rel="noopener">
+                <img [src]="fotoFullUrl(url)" alt="Evidencia" />
+              </a>
+            }
+          </div>
+        }
+        <h4>Clasificación IA</h4>
+        <div class="cu14-ia">
+          <div class="cu14-mini-row">
+            <div><b>Tipo detectado</b><p>{{ seleccion.tipo_problema }}</p></div>
+            <div><b>Nivel de confianza</b><p>95%</p></div>
+          </div>
+          <div class="ia-bar"><div></div></div>
+          <p>Evidencia visual confirma el tipo de asistencia.</p>
+        </div>
+      </div>
+      <div class="cu14-foot">
         <button
           type="button"
-          class="cu13-card"
-          [class.cu13-card-active]="seleccion?.incidente_id === s.incidente_id"
-          (click)="abrirDetalle(s)"
+          class="btn-primary"
+          (click)="aceptarSeleccion()"
+          [disabled]="aceptando"
         >
-          <div class="cu13-card-top">
-            <span class="cu13-id">#{{ s.incidente_id }}</span>
-            <span class="badge" [ngClass]="prioridadClass(s.prioridad)">{{ prioridadLabel(s.prioridad) }}</span>
-          </div>
-          <div class="cu13-tipo">{{ s.tipo_problema }}</div>
-          <div class="cu13-meta">
-            <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;color:#6B7280">location_on</span>
-            {{ s.latitud | number:'1.4-4' }}, {{ s.longitud | number:'1.4-4' }}
-          </div>
-          @if (s.fotos_urls.length > 0) {
-            <div class="cu13-evid">
-              <span class="material-symbols-outlined" style="font-size:14px">image</span>
-              {{ s.fotos_urls.length }} foto(s)
-            </div>
+          @if (aceptando) {
+            <span class="spinner-dark" style="margin-right:8px"></span>
           }
+          Aceptar solicitud
         </button>
-      }
+        <button class="btn-secondary" (click)="cerrarDetalle()">Cancelar</button>
+      </div>
     </div>
-
-    <div class="cu13-detail">
-      @if (seleccion) {
-        <div class="form-card" style="margin:0">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem">
-            <div>
-              <h2 style="font-size:1.05rem;font-weight:700;margin:0">Incidente #{{ seleccion.incidente_id }}</h2>
-              <p style="margin:0.35rem 0 0;font-size:0.85rem;color:#6B7280">{{ seleccion.created_at | date:'medium' }}</p>
-            </div>
-            <button type="button" class="btn-secondary" (click)="cerrarDetalle()">Cerrar</button>
-          </div>
-
-          <div class="stats-row" style="margin-bottom:1rem">
-            <div class="stat-box">
-              <span class="stat-val" style="font-size:0.95rem">Prioridad</span>
-              <span class="stat-lbl"><span class="badge" [ngClass]="prioridadClass(seleccion.prioridad)">{{ prioridadLabel(seleccion.prioridad) }}</span></span>
-            </div>
-            <div class="stat-box">
-              <span class="stat-val" style="font-size:0.95rem">Estado</span>
-              <span class="stat-lbl">{{ seleccion.estado }}</span>
-            </div>
-          </div>
-
-          <h3 style="font-size:0.88rem;font-weight:700;color:var(--text);margin:0 0 0.5rem">Ubicación</h3>
-          <p style="margin:0 0 1rem;font-size:0.9rem;color:#374151">
-            {{ seleccion.latitud | number:'1.5-5' }}, {{ seleccion.longitud | number:'1.5-5' }}
-          </p>
-
-          <h3 style="font-size:0.88rem;font-weight:700;color:var(--text);margin:0 0 0.5rem">Descripción</h3>
-          <p style="margin:0 0 1rem;font-size:0.9rem;color:#374151;white-space:pre-wrap">
-            {{ seleccion.descripcion || '— Sin texto —' }}
-          </p>
-
-          <h3 style="font-size:0.88rem;font-weight:700;color:var(--text);margin:0 0 0.5rem">Evidencias</h3>
-          @if (seleccion.fotos_urls.length === 0) {
-            <p style="font-size:0.88rem;color:#6B7280">Sin imágenes adjuntas.</p>
-          } @else {
-            <div class="cu13-gallery">
-              @for (url of seleccion.fotos_urls; track url) {
-                <a [href]="fotoFullUrl(url)" target="_blank" rel="noopener">
-                  <img [src]="fotoFullUrl(url)" alt="Evidencia" />
-                </a>
-              }
-            </div>
-          }
-          <p style="margin-top:1rem;font-size:0.8rem;color:#9CA3AF">
-            Audio: {{ seleccion.tiene_audio ? 'Sí' : 'No' }} · Texto: {{ seleccion.descripcion ? 'Sí' : 'No' }}
-          </p>
-
-          <hr style="border:0;border-top:1px solid #E5E7EB;margin:1.25rem 0" />
-
-          <h3 style="font-size:0.88rem;font-weight:700;color:var(--text);margin:0 0 0.5rem">Aceptar solicitud (CU15)</h3>
-          <p style="font-size:0.82rem;color:#6B7280;margin:0 0 0.75rem">
-            Se creará una asignación para tu taller y el incidente quedará en proceso.
-          </p>
-          <label class="cu13-eta-label">
-            <span>ETA opcional (minutos)</span>
-            <input type="number" class="cu13-eta-input" [(ngModel)]="etaMinutos" min="1" max="1440" placeholder="Ej. 45" />
-          </label>
-          <button
-            type="button"
-            class="btn-primary"
-            style="margin-top:1rem;width:100%;justify-content:center"
-            (click)="aceptarSeleccion()"
-            [disabled]="aceptando"
-          >
-            @if (aceptando) {
-              <span class="spinner-dark" style="margin-right:8px"></span>
-            }
-            Aceptar solicitud
-          </button>
-        </div>
-      } @else {
-        <div class="empty-state" style="min-height:280px">
-          <span class="material-symbols-outlined" style="font-size:36px;color:#D1D5DB">touch_app</span>
-          <p>Selecciona una solicitud para ver el detalle.</p>
-        </div>
-      }
-    </div>
-  </div>
+  }
 }

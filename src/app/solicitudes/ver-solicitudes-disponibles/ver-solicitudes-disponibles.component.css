@@ -1,20 +1,28 @@
-.cu13-layout {
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.2fr);
-  gap: 1.25rem;
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  .cu13-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
-.cu13-list {
+.cu13-filterbar {
+  background: #fff;
+  border: 1px solid #eceff4;
+  border-radius: 10px;
+  padding: 0.8rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.cu13-filterbar label { font-size: 0.9rem; color: #374151; }
+.cu13-filterbar select {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  min-width: 180px;
+  background: #fff;
+}
+
+.cu13-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1rem;
 }
 
 .cu13-card {
@@ -34,9 +42,10 @@
   box-shadow: 0 2px 10px rgba(37, 99, 235, 0.08);
 }
 
-.cu13-card-active {
-  border-color: var(--primary, #2563eb);
-  box-shadow: 0 0 0 1px var(--primary, #2563eb);
+.cu13-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 0.9rem;
 }
 
 .cu13-card-top {
@@ -46,10 +55,17 @@
   margin-bottom: 0.5rem;
 }
 
-.cu13-id {
-  font-weight: 700;
-  color: var(--text);
-  font-size: 0.95rem;
+.cu13-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  color: #4b5563;
+}
+
+.cu13-meta-line .material-symbols-outlined {
+  font-size: 16px;
+  color: #6b7280;
 }
 
 .cu13-tipo {
@@ -64,6 +80,17 @@
   color: #6b7280;
 }
 
+.cu13-subline {
+  font-size: 0.8rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.cu13-subline .material-symbols-outlined { font-size: 16px; }
+.dot { margin: 0 2px; color: #9ca3af; }
+
 .cu13-evid {
   margin-top: 0.5rem;
   font-size: 0.78rem;
@@ -71,6 +98,12 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.cu13-btn {
+  width: 100%;
+  margin-top: 0.75rem;
+  justify-content: center;
 }
 
 .cu13-gallery {
@@ -109,4 +142,112 @@
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 0.9rem;
+}
+
+.cu14-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.35);
+  z-index: 90;
+}
+
+.cu14-modal {
+  position: fixed;
+  z-index: 100;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1080px, 94vw);
+  max-height: 92vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
+}
+
+.cu14-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cu14-head h2 { margin: 0; font-size: 1.5rem; color: #0f2f75; }
+
+.icon-close {
+  border: none;
+  background: transparent;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+.cu14-body {
+  padding: 1.2rem;
+}
+
+.cu14-cols {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 1rem;
+}
+
+.cu14-cols h4,
+.cu14-body h4 {
+  margin: 0.65rem 0 0.4rem;
+  font-size: 1.05rem;
+  color: #374151;
+}
+
+.cu14-cols p { margin: 0 0 0.4rem; font-size: 1.25rem; color: #102a63; }
+
+.cu14-mini-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.cu14-mini-row b { font-size: 0.95rem; color: #374151; }
+.cu14-mini-row p { margin-top: 0.25rem; font-size: 1.25rem; }
+
+.cu14-box {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.9rem;
+  background: #f9fafb;
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+.cu14-ia {
+  border: 1px solid #9ec0ff;
+  background: #eef4ff;
+  border-radius: 12px;
+  padding: 0.9rem;
+}
+
+.ia-bar {
+  margin: 0.5rem 0;
+  height: 10px;
+  border-radius: 999px;
+  background: #c9d8fb;
+  overflow: hidden;
+}
+
+.ia-bar div {
+  width: 95%;
+  height: 100%;
+  background: #5e89d9;
+}
+
+.cu14-foot {
+  display: grid;
+  grid-template-columns: 1fr 170px;
+  gap: 0.8rem;
+  padding: 1rem 1.2rem 1.2rem;
+}
+
+@media (max-width: 900px) {
+  .cu14-cols { grid-template-columns: 1fr; }
+  .cu14-foot { grid-template-columns: 1fr; }
 }
