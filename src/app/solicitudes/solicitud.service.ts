@@ -33,6 +33,14 @@ export interface MiSolicitud {
   fotos_urls: string[];
 }
 
+export interface CalificacionPendiente {
+  asignacion_id: number;
+  incidente_id: number;
+  taller_id: number;
+  taller_nombre: string | null;
+  fecha_finalizacion: string | null;
+}
+
 export interface SolicitudDisponible {
   incidente_id: number;
   latitud: number | null;
@@ -52,6 +60,7 @@ export interface SolicitudDisponible {
 @Injectable({ providedIn: 'root' })
 export class SolicitudService {
   private readonly API = `${environment.apiUrl}/api/solicitudes`;
+  private readonly REPORTES_API = `${environment.apiUrl}/api/reportes`;
 
   constructor(private http: HttpClient) {}
 
@@ -89,6 +98,22 @@ export class SolicitudService {
   rechazar(incidenteId: number): Observable<{ asignacion_id: number; estado: string; msg: string }> {
     return this.http
       .patch<{ asignacion_id: number; estado: string; msg: string }>(`${this.API}/${incidenteId}/rechazar`, {})
+      .pipe(timeout(10000));
+  }
+
+  pendientesCalificacion(): Observable<CalificacionPendiente[]> {
+    return this.http
+      .get<CalificacionPendiente[]>(`${this.REPORTES_API}/calificaciones/pendientes`)
+      .pipe(timeout(10000));
+  }
+
+  calificar(asignacionId: number, puntuacion: number, resena?: string): Observable<unknown> {
+    return this.http
+      .post(`${this.REPORTES_API}/calificaciones`, {
+        asignacion_id: asignacionId,
+        puntuacion,
+        resena,
+      })
       .pipe(timeout(10000));
   }
 }

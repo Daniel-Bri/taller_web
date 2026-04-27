@@ -97,3 +97,42 @@
     }
   </div>
 }
+
+@if (modalCalificar) {
+  <div style="position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:60;display:flex;align-items:center;justify-content:center;padding:1rem">
+    <div class="form-card" style="max-width:520px;width:100%">
+      <h3 style="margin:0 0 .25rem">Califica tu servicio finalizado</h3>
+      <p style="margin:0 0 1rem;color:#6B7280;font-size:.9rem">Tu valoración ayuda a mejorar la calidad del servicio.</p>
+
+      <div style="margin-bottom:.75rem">
+        <label>Servicio</label>
+        <select [(ngModel)]="seleccionCalificacion">
+          @for (p of pendientesCalificacion; track p.asignacion_id) {
+            <option [ngValue]="p">Asignación #{{ p.asignacion_id }} · Incidente #{{ p.incidente_id }} · {{ p.taller_nombre || 'Taller' }}</option>
+          }
+        </select>
+      </div>
+      <div style="margin-bottom:.75rem">
+        <label>Puntuación</label>
+        <select [(ngModel)]="puntuacion">
+          <option [ngValue]="5">5 - Excelente</option>
+          <option [ngValue]="4">4 - Muy bueno</option>
+          <option [ngValue]="3">3 - Bueno</option>
+          <option [ngValue]="2">2 - Regular</option>
+          <option [ngValue]="1">1 - Malo</option>
+        </select>
+      </div>
+      <div style="margin-bottom:1rem">
+        <label>Reseña (opcional)</label>
+        <textarea rows="3" [(ngModel)]="resena" placeholder="Describe tu experiencia"></textarea>
+      </div>
+
+      <div class="action-btns">
+        <button class="btn-secondary" (click)="cerrarModalCalificar()">Más tarde</button>
+        <button class="btn-primary" (click)="enviarCalificacion()" [disabled]="enviandoCalificacion">
+          @if (enviandoCalificacion) { Enviando... } @else { Enviar calificación }
+        </button>
+      </div>
+    </div>
+  </div>
+}

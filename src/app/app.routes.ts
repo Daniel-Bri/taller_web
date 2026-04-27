@@ -24,6 +24,9 @@ import { VerEstadoSolicitudComponent } from './solicitudes/ver-estado-solicitud/
 import { AuditoriaComponent } from './reportes/auditoria/auditoria.component';
 import { RealizarPagoComponent } from './cotizacion-pagos/realizar-pago/realizar-pago.component';
 import { HistorialServiciosComponent } from './reportes/historial-servicios/historial-servicios.component';
+import { MetricasTallerComponent } from './reportes/metricas-taller/metricas-taller.component';
+import { MetricasGlobalesComponent } from './reportes/metricas-globales/metricas-globales.component';
+import { CalificarServicioComponent } from './reportes/calificar-servicio/calificar-servicio.component';
 import { AccesoDenegadoComponent } from './shared/acceso-denegado/acceso-denegado.component';
 import { CambiarContrasenaComponent } from './acceso-registro/cambiar-contrasena/cambiar-contrasena.component';
 import { RecuperarContrasenaComponent } from './acceso-registro/recuperar-contrasena/recuperar-contrasena.component';
@@ -87,9 +90,9 @@ export const routes: Routes = [
       // ── Reportes ───────────────────────────────────────────
       { path: 'reportes/auditoria',           component: AuditoriaComponent,    canActivate: [roleGuard], data: { roles: ['admin'] } },
       { path: 'reportes/historial-servicios', component: HistorialServiciosComponent, canActivate: [roleGuard], data: { roles: ['cliente', 'taller'] } },
-      { path: 'reportes/metricas-taller',     component: DashboardHomeComponent, canActivate: [roleGuard], data: { roles: ['taller'] } },
-      { path: 'reportes/metricas-globales',   component: DashboardHomeComponent, canActivate: [roleGuard], data: { roles: ['admin'] } },
-      { path: 'reportes/calificar-servicio',  component: DashboardHomeComponent, canActivate: [roleGuard], data: { roles: ['cliente'] } },
+      { path: 'reportes/metricas-taller',     component: MetricasTallerComponent, canActivate: [roleGuard], data: { roles: ['taller'] } },
+      { path: 'reportes/metricas-globales',   component: MetricasGlobalesComponent, canActivate: [roleGuard], data: { roles: ['admin'] } },
+      { path: 'reportes/calificar-servicio',  component: CalificarServicioComponent, canActivate: [roleGuard], data: { roles: ['cliente'] } },
 
       // ── Stubs catch-all (rutas no implementadas aún) ───────
       { path: 'emergencias/:cu',       component: DashboardHomeComponent },

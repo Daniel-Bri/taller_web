@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SolicitudService, MiSolicitud } from '../solicitud.service';
+import { FormsModule } from '@angular/forms';
+import { SolicitudService, MiSolicitud, CalificacionPendiente } from '../solicitud.service';
 
 @Component({
   selector: 'app-ver-estado-solicitud',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './ver-estado-solicitud.component.html',
 })
 export class VerEstadoSolicitudComponent implements OnInit, OnDestroy {
@@ -13,6 +14,12 @@ export class VerEstadoSolicitudComponent implements OnInit, OnDestroy {
   loading = false;
   errorMsg = '';
   private _poll?: ReturnType<typeof setInterval>;
+  modalCalificar = false;
+  pendientesCalificacion: CalificacionPendiente[] = [];
+  seleccionCalificacion: CalificacionPendiente | null = null;
+  puntuacion = 5;
+  resena = '';
+  enviandoCalificacion = false;
 
   constructor(private solicitudSvc: SolicitudService) {}
 
@@ -34,6 +41,7 @@ export class VerEstadoSolicitudComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.items = data;
         this.loading = false;
+        if (!silencioso) this.cargarPendientesCalificacion();
       },
       error: (e) => {
         this.loading = false;
@@ -42,6 +50,42 @@ export class VerEstadoSolicitudComponent implements OnInit, OnDestroy {
           (typeof e?.message === 'string' ? e.message : 'No se pudieron cargar las solicitudes.');
       },
     });
+  }
+
+  cargarPendientesCalificacion(): void {
+    this.solicitudSvc.pendientesCalificacion().subscribe({
+      next: (rows) => {
+        this.pendientesCalificacion = rows;
+        this.seleccionCalificacion = rows[0] ?? null;
+        this.modalCalificar = rows.length > 0;
+      },
+      error: () => {
+        // Silencioso para no bloquear CU10
+      },
+    });
+  }
+
+  cerrarModalCalificar(): void {
+    this.modalCalificar = false;
+  }
+
+  enviarCalificacion(): void {
+    if (!this.seleccionCalificacion || this.enviandoCalificacion) return;
+    this.enviandoCalificacion = true;
+    this.solicitudSvc
+      .calificar(this.seleccionCalificacion.asignacion_id, this.puntuacion, this.resena.trim() || undefined)
+      .subscribe({
+        next: () => {
+          this.enviandoCalificacion = false;
+          this.resena = '';
+          this.puntuacion = 5;
+          this.cargarPendientesCalificacion();
+        },
+        error: (e) => {
+          this.enviandoCalificacion = false;
+          this.errorMsg = e?.error?.detail ?? 'No se pudo registrar la calificación.';
+        },
+      });
   }
 
   labelIncidente(e: string): string {

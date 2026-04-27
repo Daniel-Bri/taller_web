@@ -93,7 +93,7 @@
   <div class="form-card">
     <h2 style="margin:0 0 1rem;font-size:1rem;font-weight:700">Método de pago</h2>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem">
-      @for (opt of [['efectivo','Efectivo','payments'],['transferencia','Transferencia bancaria','account_balance'],['tarjeta','Tarjeta de crédito/débito','credit_card']]; track opt[0]) {
+      @for (opt of [['efectivo','Efectivo (simulado)','payments'],['qr','QR (simulado)','qr_code_2']]; track opt[0]) {
         <label style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:2px solid;border-radius:10px;cursor:pointer"
                [style.border-color]="metodo === opt[0] ? '#6366F1' : '#E5E7EB'"
                [style.background]="metodo === opt[0] ? '#EEF2FF' : '#FAFAFA'">

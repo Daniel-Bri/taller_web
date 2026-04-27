@@ -115,8 +115,7 @@ export class RealizarPagoComponent implements OnInit {
   metodoLabel(m: string): string {
     const map: Record<string, string> = {
       efectivo:      'Efectivo',
-      transferencia: 'Transferencia bancaria',
-      tarjeta:       'Tarjeta de crédito/débito',
+      qr:            'QR',
     };
     return map[m] ?? m;
   }

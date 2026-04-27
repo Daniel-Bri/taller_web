@@ -1,2 +1,57 @@
-<!-- CU31 - Ver Métricas del Taller -->
-<p>CU31 - Ver Métricas del Taller</p>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Reporte del Taller</h1>
+    <p class="page-sub">CU34 · Filtros por fecha y exportación CSV/Excel/PDF</p>
+  </div>
+</div>
+
+<div class="form-card" style="margin-bottom:1rem;display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:0.75rem;align-items:end">
+  <div>
+    <label>Desde</label>
+    <input type="date" [(ngModel)]="desde" />
+  </div>
+  <div>
+    <label>Hasta</label>
+    <input type="date" [(ngModel)]="hasta" />
+  </div>
+  <button class="btn-primary" (click)="cargar()" [disabled]="loading">Generar</button>
+  <button class="btn-secondary" (click)="resumen=null; errorMsg=''">Limpiar</button>
+</div>
+
+@if (errorMsg) { <div class="alert-danger">{{ errorMsg }}</div> }
+@if (loading) { <div class="loading-row"><span class="spinner-dark"></span> Generando reporte...</div> }
+
+@if (resumen) {
+  <div class="stats-row" style="margin-bottom:1rem">
+    <div class="stat-box"><div class="stat-val">{{ resumen.servicios_finalizados }}</div><div class="stat-lbl">Finalizados</div></div>
+    <div class="stat-box"><div class="stat-val">{{ resumen.servicios_pagados }}</div><div class="stat-lbl">Pagados</div></div>
+    <div class="stat-box"><div class="stat-val">Bs {{ resumen.ingresos_netos | number:'1.2-2' }}</div><div class="stat-lbl">Ingresos netos</div></div>
+    <div class="stat-box"><div class="stat-val">{{ resumen.promedio_calificacion ?? '—' }}</div><div class="stat-lbl">Rating</div></div>
+  </div>
+
+  <div class="action-btns" style="margin-bottom:1rem">
+    <button class="btn-secondary" (click)="exportarCSV()">Exportar CSV</button>
+    <button class="btn-secondary" (click)="exportarExcel()">Exportar Excel</button>
+    <button class="btn-secondary" (click)="exportarPDF()">Exportar PDF</button>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr><th>Pago</th><th>Cotización</th><th>Incidente</th><th>Monto</th><th>Método</th><th>Fecha</th></tr>
+      </thead>
+      <tbody>
+        @for (p of resumen.detalle_pagos; track p.pago_id) {
+          <tr>
+            <td>#{{ p.pago_id }}</td>
+            <td>#{{ p.cotizacion_id }}</td>
+            <td>#{{ p.incidente_id }}</td>
+            <td>Bs {{ p.monto | number:'1.2-2' }}</td>
+            <td>{{ p.metodo | uppercase }}</td>
+            <td>{{ p.fecha | date:'short' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

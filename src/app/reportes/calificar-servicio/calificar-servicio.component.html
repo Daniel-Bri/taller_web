@@ -1,2 +1,48 @@
-<!-- CU28 - Calificar Servicio -->
-<p>CU28 - Calificar Servicio</p>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Calificar Servicio</h1>
+    <p class="page-sub">CU23 · Califica servicios finalizados</p>
+  </div>
+  <button class="btn-secondary" (click)="cargar()" [disabled]="loading">Actualizar</button>
+</div>
+
+@if (errorMsg) { <div class="alert-danger">{{ errorMsg }}</div> }
+@if (okMsg) { <div class="server-success">{{ okMsg }}</div> }
+@if (loading) { <div class="loading-row"><span class="spinner-dark"></span> Cargando...</div> }
+
+@if (!loading && pendientes.length === 0) {
+  <div class="empty-state">No tienes servicios pendientes de calificación.</div>
+}
+
+@if (!loading && pendientes.length > 0) {
+  <div class="form-card">
+    <div style="margin-bottom:1rem">
+      <label>Servicio finalizado</label>
+      <select [(ngModel)]="seleccion">
+        @for (p of pendientes; track p.asignacion_id) {
+          <option [ngValue]="p">
+            Asignación #{{ p.asignacion_id }} · Incidente #{{ p.incidente_id }} · {{ p.taller_nombre || 'Taller' }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <label>Puntuación</label>
+      <select [(ngModel)]="puntuacion">
+        <option [ngValue]="5">5 - Excelente</option>
+        <option [ngValue]="4">4 - Muy bueno</option>
+        <option [ngValue]="3">3 - Bueno</option>
+        <option [ngValue]="2">2 - Regular</option>
+        <option [ngValue]="1">1 - Malo</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <label>Reseña (opcional)</label>
+      <textarea [(ngModel)]="resena" rows="4" placeholder="Cuéntanos tu experiencia..."></textarea>
+    </div>
+
+    <button class="btn-primary" (click)="enviar()">Enviar calificación</button>
+  </div>
+}

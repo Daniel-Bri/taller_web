@@ -105,7 +105,7 @@ export class DashboardHomeComponent {
         { icon: 'people',           label: 'Técnicos',             route: '/app/talleres-tecnicos/gestionar-tecnicos',          bg: '#ECFDF5', color: '#16A34A' },
         { icon: 'receipt_long',     label: 'Cotizaciones',         route: '/app/cotizacion-pagos/generar-cotizacion',           bg: '#F5F3FF', color: '#7C3AED' },
         { icon: 'chat',             label: 'Chat',                 route: '/app/comunicacion/chat',                            bg: '#ECFDF5', color: '#16A34A' },
-        { icon: 'toggle_on',        label: 'Disponibilidad',       route: '/app/talleres-tecnicos/gestionar-disponibilidad',    bg: '#FFF7ED', color: '#D97706' },
+        { icon: 'bar_chart',        label: 'Reporte Taller',       route: '/app/reportes/metricas-taller',                     bg: '#FFF7ED', color: '#D97706' },
       ],
       tecnico: [
         { icon: 'build',            label: 'Estado Servicio',      route: '/app/talleres-tecnicos/actualizar-estado-servicio',  bg: '#EFF6FF', color: '#2563EB' },
@@ -117,7 +117,7 @@ export class DashboardHomeComponent {
         { icon: 'verified',         label: 'Aprobar Talleres',     route: '/app/acceso-registro/aprobar-talleres',              bg: '#ECFDF5', color: '#16A34A' },
         { icon: 'manage_accounts',  label: 'Gestionar Usuarios',   route: '/app/acceso-registro/gestionar-usuarios',            bg: '#EFF6FF', color: '#2563EB' },
         { icon: 'policy',           label: 'Auditoría',            route: '/app/reportes/auditoria',                           bg: '#FEF2F2', color: '#EF4444' },
-        { icon: 'bar_chart',        label: 'Comisiones',           route: '/app/cotizacion-pagos/ver-comisiones',               bg: '#F5F3FF', color: '#7C3AED' },
+        { icon: 'bar_chart',        label: 'Reporte Global',       route: '/app/reportes/metricas-globales',                   bg: '#F5F3FF', color: '#7C3AED' },
       ],
     };
     return all[this.role] ?? [];
